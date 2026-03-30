@@ -1,7 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Sidebar } from '../components/common/Sidebar';
 import { Card } from '../components/common/Card';
+import { Button } from '../components/common/Button';
+import { Input } from '../components/common/Input';
 
 const navItems = [
   { icon: '📚', label: '课程', path: '/' },
@@ -9,8 +11,27 @@ const navItems = [
   { icon: '⚙️', label: '设置', path: '/settings' },
 ];
 
+const topicOptions = [
+  { title: 'Python 编程', desc: '从零开始，想做数据分析' },
+  { title: 'React 开发', desc: '有一些前端基础，想做项目' },
+  { title: '英语', desc: '提升口语能力' },
+];
+
 export const ConsultantPage: React.FC = () => {
   const navigate = useNavigate();
+  const [customTopic, setCustomTopic] = useState('');
+
+  const handleTopicSelect = (topic: string) => {
+    // TODO: Phase 4 实现实际的 AI 咨询逻辑
+    console.log('选择主题:', topic);
+    alert(`你选择了: ${topic}\n\nAI 咨询功能将在 Phase 4 实现。`);
+  };
+
+  const handleStartConsult = () => {
+    if (customTopic.trim()) {
+      handleTopicSelect(customTopic.trim());
+    }
+  };
 
   return (
     <div className="flex min-h-screen">
@@ -29,24 +50,30 @@ export const ConsultantPage: React.FC = () => {
           </div>
 
           <div className="space-y-4">
-            <div className="border border-gray-200 rounded-md p-4 hover:border-primary cursor-pointer transition-colors">
-              <h3 className="font-medium">我想学习 Python 编程</h3>
-              <p className="text-sm text-text-muted">从零开始，想做数据分析</p>
-            </div>
-
-            <div className="border border-gray-200 rounded-md p-4 hover:border-primary cursor-pointer transition-colors">
-              <h3 className="font-medium">我想学习 React 开发</h3>
-              <p className="text-sm text-text-muted">有一些前端基础，想做项目</p>
-            </div>
-
-            <div className="border border-gray-200 rounded-md p-4 hover:border-primary cursor-pointer transition-colors">
-              <h3 className="font-medium">我想学习英语</h3>
-              <p className="text-sm text-text-muted">提升口语能力</p>
-            </div>
+            {topicOptions.map((option, index) => (
+              <div
+                key={index}
+                onClick={() => handleTopicSelect(option.title)}
+                className="border border-gray-200 rounded-md p-4 hover:border-primary cursor-pointer transition-colors bg-white"
+              >
+                <h3 className="font-medium">{option.title}</h3>
+                <p className="text-sm text-gray-500">{option.desc}</p>
+              </div>
+            ))}
           </div>
 
-          <div className="mt-6 text-center text-text-muted text-sm">
-            或者输入你想学习的内容...
+          <div className="mt-6">
+            <p className="text-center text-gray-500 text-sm mb-3">或者输入你想学习的内容...</p>
+            <div className="flex gap-2">
+              <Input
+                placeholder="例如：机器学习、摄影、历史..."
+                value={customTopic}
+                onChange={(e) => setCustomTopic(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleStartConsult()}
+                className="flex-1"
+              />
+              <Button onClick={handleStartConsult}>开始咨询</Button>
+            </div>
           </div>
         </Card>
       </main>

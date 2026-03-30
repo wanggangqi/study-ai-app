@@ -8,10 +8,19 @@ import { SetupPage } from './pages/Setup';
 import { LearningPage } from './pages/Learning';
 import { useAuthStore } from './stores/authStore';
 
+// 开发模式跳过授权检查
+const DEV_MODE = true;
+
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const isAuthorized = useAuthStore((state) => state.isAuthorized);
   const expireAt = useAuthStore((state) => state.expireAt);
   const isValid = isAuthorized && expireAt && new Date(expireAt) > new Date();
+
+  // 开发模式下强制跳过授权
+  if (DEV_MODE) {
+    console.log('开发模式：跳过授权检查');
+    return <>{children}</>;
+  }
 
   if (!isValid) {
     return <Navigate to="/auth" replace />;
