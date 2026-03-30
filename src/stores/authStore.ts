@@ -1,15 +1,13 @@
 import { create } from 'zustand';
+import type { AuthState } from '../types';
 
-interface AuthState {
-  isAuthorized: boolean;
-  expireAt: string | null;
-  machineHash: string | null;
+export interface AuthStore extends AuthState {
   setAuthorized: (expireAt: string, machineHash: string) => void;
   clearAuth: () => void;
   checkAuth: () => boolean;
 }
 
-export const useAuthStore = create<AuthState>((set, get) => ({
+export const useAuthStore = create<AuthStore>((set, get) => ({
   isAuthorized: false,
   expireAt: null,
   machineHash: null,
@@ -28,3 +26,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     return new Date(state.expireAt) > new Date();
   },
 }));
+
+// Helper function to check auth from non-component code
+export const checkAuth = () => useAuthStore.getState().checkAuth();

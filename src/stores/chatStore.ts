@@ -1,14 +1,5 @@
 import { create } from 'zustand';
-
-export interface ChatMessage {
-  id: string;
-  courseId: string;
-  lessonId?: string;
-  agentType: 'consultant' | 'teacher';
-  role: 'user' | 'assistant';
-  content: string;
-  createdAt: string;
-}
+import type { ChatMessage } from '../types';
 
 interface ChatStore {
   consultantMessages: ChatMessage[];

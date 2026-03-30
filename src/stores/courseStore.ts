@@ -1,37 +1,5 @@
 import { create } from 'zustand';
-
-export interface Course {
-  id: string;
-  name: string;
-  giteeRepoUrl: string;
-  localPath: string;
-  targetLevel: string;
-  duration: string;
-  teachingStyle: string;
-  createdAt: string;
-  status: 'active' | 'completed' | 'paused';
-  progress?: number;
-  totalLessons?: number;
-  completedLessons?: number;
-}
-
-export interface Chapter {
-  id: string;
-  courseId: string;
-  chapterIndex: number;
-  name: string;
-}
-
-export interface Lesson {
-  id: string;
-  chapterId: string;
-  lessonIndex: number;
-  name: string;
-  duration: string;
-  status: 'not_started' | 'in_progress' | 'completed';
-  completedAt?: string;
-  lessonFile?: string;
-}
+import type { Course, Chapter, Lesson } from '../types';
 
 interface CourseStore {
   courses: Course[];
@@ -67,10 +35,38 @@ export const useCourseStore = create<CourseStore>((set, get) => ({
   selectLesson: (lesson) => set({ currentLesson: lesson }),
 
   updateLessonStatus: (lessonId, status) => {
-    set((state) => ({
-      currentLesson: state.currentLesson?.id === lessonId
+    set((state) => {
+      const updatedLesson = state.currentLesson?.id === lessonId
         ? { ...state.currentLesson, status, completedAt: status === 'completed' ? new Date().toISOString() : undefined }
-        : state.currentLesson,
-    }));
+        : state.currentLesson;
+
+      // Update currentCourse progress if the lesson belongs to currentCourse
+      let updatedCurrentCourse = state.currentCourse;
+      if (updatedLesson && state.currentCourse) {
+        const completedCount = state.currentCourse.completedLessons || 0;
+        const wasCompleted = state.currentLesson?.status === 'completed';
+        const isNowCompleted = status === 'completed';
+
+        let newCompletedLessons = completedCount;
+        if (!wasCompleted && isNowCompleted) {
+          newCompletedLessons = completedCount + 1;
+        } else if (wasCompleted && !isNowCompleted) {
+          newCompletedLessons = Math.max(0, completedCount - 1);
+        }
+
+        updatedCurrentCourse = {
+          ...state.currentCourse,
+          completedLessons: newCompletedLessons,
+          progress: state.currentCourse.totalLessons
+            ? Math.round((newCompletedLessons / state.currentCourse.totalLessons) * 100)
+            : undefined,
+        };
+      }
+
+      return {
+        currentLesson: updatedLesson,
+        currentCourse: updatedCurrentCourse,
+      };
+    });
   },
 }));

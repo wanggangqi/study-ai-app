@@ -1,17 +1,5 @@
 import { create } from 'zustand';
-
-export type AIProvider = 'claude' | 'openai' | 'qwen' | 'deepseek' | 'glm' | 'minimax' | 'kimi';
-
-interface UserConfig {
-  giteeUsername: string;
-  giteeToken: string;
-  workspacePath: string;
-  aiProvider: AIProvider;
-  aiApiKey: string;
-  aiModel: string;
-  gitUsername: string;
-  gitEmail: string;
-}
+import type { UserConfig } from '../types';
 
 interface ConfigStore extends UserConfig {
   isSetupComplete: boolean;
