@@ -3,5 +3,15 @@ export { useConfigStore } from './configStore';
 export { useCourseStore } from './courseStore';
 export { useChatStore } from './chatStore';
 
-export type { Course, Chapter, Lesson } from './courseStore';
-export type { ChatMessage } from './chatStore';
+// Re-export types from centralized types file
+export type {
+  AIProvider,
+  AuthState,
+  UserConfig,
+  Course,
+  Chapter,
+  Lesson,
+  ChatMessage,
+  TeachingStyle,
+} from '../types';
+
