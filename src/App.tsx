@@ -1,15 +1,70 @@
-function App() {
+import React from 'react';
+import { Routes, Route, Navigate } from 'react-router-dom';
+import { HomePage } from './pages/Home';
+import { ConsultantPage } from './pages/Consultant';
+import { SettingsPage } from './pages/Settings';
+import { AuthPage } from './pages/Auth';
+import { SetupPage } from './pages/Setup';
+import { LearningPage } from './pages/Learning';
+import { useAuthStore } from './stores/authStore';
+
+const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { isAuthorized, expireAt } = useAuthStore();
+  const isValid = isAuthorized && expireAt && new Date(expireAt) > new Date();
+
+  if (!isValid) {
+    return <Navigate to="/auth" replace />;
+  }
+
+  return <>{children}</>;
+};
+
+const App: React.FC = () => {
   return (
-    <div className="app">
-      <header>
-        <h1>智学伴侣</h1>
-        <p>AI 一对一教学应用</p>
-      </header>
-      <main>
-        <p>项目初始化成功！</p>
-      </main>
-    </div>
+    <Routes>
+      <Route path="/auth" element={<AuthPage />} />
+      <Route
+        path="/setup"
+        element={
+          <ProtectedRoute>
+            <SetupPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/"
+        element={
+          <ProtectedRoute>
+            <HomePage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/consultant"
+        element={
+          <ProtectedRoute>
+            <ConsultantPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/settings"
+        element={
+          <ProtectedRoute>
+            <SettingsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/learning/:courseId"
+        element={
+          <ProtectedRoute>
+            <LearningPage />
+          </ProtectedRoute>
+        }
+      />
+    </Routes>
   );
-}
+};
 
 export default App;
