@@ -2,7 +2,6 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Sidebar } from '../components/common/Sidebar';
 import { Card } from '../components/common/Card';
-import { Button } from '../components/common/Button';
 
 const navItems = [
   { icon: '📚', label: '课程', path: '/' },

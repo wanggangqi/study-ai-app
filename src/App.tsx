@@ -9,7 +9,8 @@ import { LearningPage } from './pages/Learning';
 import { useAuthStore } from './stores/authStore';
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { isAuthorized, expireAt } = useAuthStore();
+  const isAuthorized = useAuthStore((state) => state.isAuthorized);
+  const expireAt = useAuthStore((state) => state.expireAt);
   const isValid = isAuthorized && expireAt && new Date(expireAt) > new Date();
 
   if (!isValid) {
@@ -63,6 +64,7 @@ const App: React.FC = () => {
           </ProtectedRoute>
         }
       />
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 };

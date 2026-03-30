@@ -14,7 +14,7 @@ const navItems = [
 export const LearningPage: React.FC = () => {
   const { courseId } = useParams<{ courseId: string }>();
   const navigate = useNavigate();
-  const { courses, currentCourse, selectCourse } = useCourseStore();
+  const { currentCourse, selectCourse } = useCourseStore();
 
   React.useEffect(() => {
     if (courseId) {
