@@ -1,0 +1,87 @@
+<h2>AI 一对一教学应用 - 整体架构</h2>
+<p class="subtitle">以下是你描述的各个子系统及其关系</p>
+
+<div class="mockup">
+  <div class="mockup-header">系统架构概览</div>
+  <div class="mockup-body" style="background: #f8f5f0; padding: 20px;">
+    <div style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: center;">
+      <!-- 授权系统 -->
+      <div style="background: #fff; border: 2px solid #e07b39; border-radius: 8px; padding: 12px; width: 140px; text-align: center;">
+        <div style="font-weight: bold; color: #e07b39;">授权系统</div>
+        <div style="font-size: 12px; color: #666; margin-top: 6px;">密钥验证<br>有效期管理</div>
+      </div>
+      <!-- 配置系统 -->
+      <div style="background: #fff; border: 2px solid #5b8a72; border-radius: 8px; padding: 12px; width: 140px; text-align: center;">
+        <div style="font-weight: bold; color: #5b8a72;">配置系统</div>
+        <div style="font-size: 12px; color: #666; margin-top: 6px;">Git/AI设置<br>教学风格</div>
+      </div>
+      <!-- 码云集成 -->
+      <div style="background: #fff; border: 2px solid #c44536; border-radius: 8px; padding: 12px; width: 140px; text-align: center;">
+        <div style="font-weight: bold; color: #c44536;">码云集成</div>
+        <div style="font-size: 12px; color: #666; margin-top: 6px;">仓库管理<br>学习记录同步</div>
+      </div>
+      <!-- 咨询师 -->
+      <div style="background: #fff; border: 2px solid #4a6fa5; border-radius: 8px; padding: 12px; width: 140px; text-align: center;">
+        <div style="font-weight: bold; color: #4a6fa5;">咨询师 Agent</div>
+        <div style="font-size: 12px; color: #666; margin-top: 6px;">了解需求<br>生成教学计划</div>
+      </div>
+      <!-- 教师 -->
+      <div style="background: #fff; border: 2px solid #9b5de5; border-radius: 8px; padding: 12px; width: 140px; text-align: center;">
+        <div style="font-weight: bold; color: #9b5de5;">教师 Agent</div>
+        <div style="font-size: 12px; color: #666; margin-top: 6px;">生成课件<br>答疑/练习</div>
+      </div>
+      <!-- 学习界面 -->
+      <div style="background: #fff; border: 2px solid #f15bb5; border-radius: 8px; padding: 12px; width: 140px; text-align: center;">
+        <div style="font-weight: bold; color: #f15bb5;">学习界面</div>
+        <div style="font-size: 12px; color: #666; margin-top: 6px;">课程列表<br>HTML课件/答题</div>
+      </div>
+    </div>
+
+    <div style="margin-top: 16px; text-align: center; font-size: 13px; color: #555;">
+      <div style="background: #ffe4d9; padding: 8px; border-radius: 4px; margin-bottom: 8px;">
+        主线流程：配置 → 咨询师创建课程 → 首页查看 → 教师授课学习
+      </div>
+      <div style="background: #e8f4e8; padding: 8px; border-radius: 4px;">
+        支撑模块：授权（入口把关） + 码云（数据同步）
+      </div>
+    </div>
+  </div>
+</div>
+
+<h3 style="margin-top: 24px;">第一个问题</h3>
+<p class="subtitle">了解目标用户有助于确定设计重点</p>
+
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>中小学生 (K12)</h3>
+      <p>需要简洁界面、家长监督功能、学习进度可视化</p>
+    </div>
+  </div>
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>大学生 / 自学者</h3>
+      <p>需要灵活的学习安排、技术类课程、自主性强</p>
+    </div>
+  </div>
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>职场人士 / 技能提升</h3>
+      <p>需要实用技能、时间碎片化、学习效率优先</p>
+    </div>
+  </div>
+  <div class="option" data-choice="d" onclick="toggleSelect(this)">
+    <div class="letter">D</div>
+    <div class="content">
+      <h3>混合 / 不确定</h3>
+      <p>希望支持多种用户类型，或者还没确定</p>
+    </div>
+  </div>
+</div>
+
+<p style="margin-top: 16px; font-size: 13px; color: #666;">
+  你可以在浏览器中点击选择，然后在终端告诉我你的想法。
+</p>

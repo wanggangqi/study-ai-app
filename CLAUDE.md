@@ -12,7 +12,7 @@
 - **UI组件**: shadcn/ui + Tailwind CSS（温暖风格）
 - **后端**: Rust
 - **本地数据库**: SQLite (rusqlite)
-- **AI服务**: Claude / OpenAI / 通义千问 / DeepSeek / 智谱GLM
+- **AI服务**: Claude / OpenAI / 通义千问 / DeepSeek / 智谱GLM / MiniMax / Kimi (Moonshot)
 - **远程仓库**: 码云 (Gitee)
 
 ## 核心功能模块

@@ -1,0 +1,125 @@
+<h2>首页 / 课程列表界面</h2>
+<p class="subtitle">用户进入应用后首先看到的页面，展示已创建的课程</p>
+
+<div class="split">
+  <div class="mockup">
+    <div class="mockup-header">方案 A：简洁卡片列表</div>
+    <div class="mockup-body" style="background: #fefae0; padding: 16px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <span style="font-size: 20px; font-weight: bold; color: #588157;">📚 我的课程</span>
+        <button class="mock-button" style="background: #d4a373; color: white;">+ 创建新课程</button>
+      </div>
+      <div style="display: flex; gap: 12px;">
+        <div style="background: #fff; border-radius: 8px; padding: 16px; width: 180px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+          <div style="font-weight: bold; color: #588157;">Python 入门</div>
+          <div style="font-size: 12px; color: #666; margin-top: 6px;">目标：掌握基础语法</div>
+          <div style="font-size: 11px; color: #999; margin-top: 4px;">时长：3个月</div>
+          <div style="margin-top: 10px;">
+            <div style="background: #e9edc9; border-radius: 4px; height: 6px;"></div>
+            <div style="font-size: 11px; color: #588157; margin-top: 2px;">进度 25%</div>
+          </div>
+          <button class="mock-button" style="width: 100%; margin-top: 8px; background: #588157; color: white;">继续学习</button>
+        </div>
+        <div style="background: #fff; border-radius: 8px; padding: 16px; width: 180px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+          <div style="font-weight: bold; color: #588157;">React 开发</div>
+          <div style="font-size: 12px; color: #666; margin-top: 6px;">目标：能独立开发项目</div>
+          <div style="font-size: 11px; color: #999; margin-top: 4px;">时长：2个月</div>
+          <div style="margin-top: 10px;">
+            <div style="background: #faedcd; border-radius: 4px; height: 6px;"></div>
+            <div style="font-size: 11px; color: #d4a373; margin-top: 2px;">进度 10%</div>
+          </div>
+          <button class="mock-button" style="width: 100%; margin-top: 8px; background: #d4a373; color: white;">开始学习</button>
+        </div>
+      </div>
+      <div style="text-align: center; margin-top: 40px; color: #999; font-size: 13px;">
+        还没有更多课程，点击上方"创建新课程"
+      </div>
+    </div>
+  </div>
+
+  <div class="mockup">
+    <div class="mockup-header">方案 B：左侧导航 + 右侧内容</div>
+    <div class="mockup-body" style="display: flex; height: 280px;">
+      <div class="mock-sidebar" style="width: 180px; background: #f5ebe0; padding: 12px;">
+        <div style="font-weight: bold; color: #588157; padding: 8px; background: #fff; border-radius: 4px;">📚 课程列表</div>
+        <div style="padding: 8px; color: #666;">💬 咨询师</div>
+        <div style="padding: 8px; color: #666;">⚙️ 设置</div>
+        <div style="padding: 8px; color: #666;">👤 账户</div>
+      </div>
+      <div style="flex: 1; background: #fefae0; padding: 16px;">
+        <div style="font-size: 18px; font-weight: bold; color: #588157;">我的课程</div>
+        <div style="margin-top: 12px; display: flex; flex-direction: column; gap: 8px;">
+          <div style="background: #fff; padding: 12px; border-radius: 8px; display: flex; justify-content: space-between;">
+            <div>
+              <div style="font-weight: bold;">Python 入门</div>
+              <div style="font-size: 11px; color: #666;">进度 25% | 第3课</div>
+            </div>
+            <button class="mock-button" style="background: #588157; color: white;">继续</button>
+          </div>
+          <div style="background: #fff; padding: 12px; border-radius: 8px; display: flex; justify-content: space-between;">
+            <div>
+              <div style="font-weight: bold;">React 开发</div>
+              <div style="font-size: 11px; color: #666;">进度 10% | 第1课</div>
+            </div>
+            <button class="mock-button" style="background: #d4a373; color: white;">开始</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="mockup" style="margin-top: 16px;">
+  <div class="mockup-header">方案 C：仪表盘风格（统计 + 课程）</div>
+  <div class="mockup-body" style="background: #fefae0; padding: 16px;">
+    <div style="display: flex; gap: 12px; margin-bottom: 16px;">
+      <div style="background: #fff; padding: 12px; border-radius: 8px; width: 120px; text-align: center;">
+        <div style="font-size: 24px; color: #588157;">2</div>
+        <div style="font-size: 11px; color: #666;">进行中的课程</div>
+      </div>
+      <div style="background: #fff; padding: 12px; border-radius: 8px; width: 120px; text-align: center;">
+        <div style="font-size: 24px; color: #d4a373;">35%</div>
+        <div style="font-size: 11px; color: #666;">本周学习进度</div>
+      </div>
+      <div style="background: #fff; padding: 12px; border-radius: 8px; width: 120px; text-align: center;">
+        <div style="font-size: 24px; color: #e9c46a;">12h</div>
+        <div style="font-size: 11px; color: #666;">本周学习时长</div>
+      </div>
+    </div>
+    <div style="font-size: 16px; font-weight: bold; color: #588157;">课程列表</div>
+    <div style="display: flex; gap: 12px; margin-top: 8px;">
+      <div style="background: #fff; border-radius: 8px; padding: 12px; width: 150px;">
+        <div style="font-weight: bold;">Python 入门</div>
+        <div style="font-size: 11px; color: #999;">进度 25%</div>
+      </div>
+      <div style="background: #fff; border-radius: 8px; padding: 12px; width: 150px;">
+        <div style="font-weight: bold;">React 开发</div>
+        <div style="font-size: 11px; color: #999;">进度 10%</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>简洁卡片列表</h3>
+      <p>课程以卡片展示，点击进入学习。简洁直观</p>
+    </div>
+  </div>
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>左侧导航 + 右侧列表</h3>
+      <p>有固定侧边栏导航，便于切换咨询师/设置等模块</p>
+    </div>
+  </div>
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>仪表盘风格</h3>
+      <p>带学习统计（进度、时长），激励感更强</p>
+    </div>
+  </div>
+</div>

@@ -31,7 +31,7 @@
 | UI 组件 | shadcn/ui + Tailwind CSS | 温暖风格定制 |
 | 后端语言 | Rust | - |
 | 本地数据库 | SQLite | 通过 rusqlite |
-| AI 服务 | Claude / OpenAI / 通义千问 / DeepSeek / 智谱 GLM | 用户可选 |
+| AI 服务 | Claude / OpenAI / 通义千问 / DeepSeek / 智谱 GLM / MiniMax / Kimi (Moonshot) | 用户可选 |
 | 远程仓库 | 码云 (Gitee) | Git 同步 |
 
 ---
@@ -177,6 +177,8 @@
 | 阿里云 (通义千问) | dashscope.aliyuncs.com | qwen-turbo, qwen-plus, qwen-max, qwen-long |
 | DeepSeek | api.deepseek.com | deepseek-chat, deepseek-coder |
 | 智谱 AI (GLM) | open.bigmodel.cn | glm-4, glm-4-flash, glm-3-turbo |
+| MiniMax | api.minimax.chat | abab6-chat, abab5.5-chat |
+| Kimi (Moonshot AI) | api.moonshot.cn | moonshot-v1-8k, moonshot-v1-32k, moonshot-v1-128k |
 
 ### 5.2 创建课程仓库流程
 

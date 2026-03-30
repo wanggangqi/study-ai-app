@@ -1,0 +1,138 @@
+<h2>学习界面布局</h2>
+<p class="subtitle">用户进入课程学习后的主界面，你倾向于哪种布局？</p>
+
+<div class="split">
+  <div class="mockup">
+    <div class="mockup-header">方案 A：左侧课程大纲 + 右侧课件区</div>
+    <div class="mockup-body" style="display: flex; height: 280px;">
+      <div class="mock-sidebar" style="width: 200px; background: #f5ebe0; padding: 12px; border-right: 1px solid #ddd;">
+        <div style="font-weight: bold; margin-bottom: 8px;">📚 Python 入门</div>
+        <div style="font-size: 12px; color: #666; margin-bottom: 6px;">第1章 基础语法</div>
+        <div style="padding: 4px 8px; background: #d4a373; color: white; border-radius: 4px; font-size: 11px;">✓ 1.1 变量与类型</div>
+        <div style="padding: 4px 8px; font-size: 11px; color: #555;">● 1.2 运算符</div>
+        <div style="padding: 4px 8px; font-size: 11px; color: #999;">○ 1.3 控制流</div>
+        <div style="margin-top: 12px; font-size: 12px; color: #666;">第2章 函数</div>
+        <div style="padding: 4px 8px; font-size: 11px; color: #999;">○ 2.1 函数定义</div>
+        <div style="padding: 4px 8px; font-size: 11px; color: #999;">○ 2.2 参数传递</div>
+      </div>
+      <div style="flex: 1; padding: 16px; background: #fff;">
+        <div style="font-size: 18px; font-weight: bold; color: #588157;">第1课：变量与类型</div>
+        <div style="margin-top: 12px; font-size: 13px; line-height: 1.6; color: #333;">
+          <p>Python 中的变量不需要声明类型，直接赋值即可...</p>
+          <div style="background: #f0f4f0; padding: 10px; border-radius: 4px; margin: 8px 0;">
+            <code>x = 10  # 整数</code>
+          </div>
+        </div>
+        <div style="margin-top: 12px; display: flex; gap: 8px;">
+          <button class="mock-button" style="background: #588157; color: white;">生成练习题</button>
+          <button class="mock-button" style="background: #e9c46a;">向老师提问</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mockup">
+    <div class="mockup-header">方案 B：顶部导航 + 全屏课件 + 底部操作栏</div>
+    <div class="mockup-body" style="height: 280px; display: flex; flex-direction: column;">
+      <div style="background: #f5ebe0; padding: 10px 16px; border-bottom: 1px solid #ddd;">
+        <span style="font-weight: bold;">📚 Python 入门</span>
+        <span style="margin-left: 16px; color: #666;">第1章 > </span>
+        <span style="color: #d4a373;">第1课：变量与类型</span>
+        <span style="float: right; color: #588157;">进度: 3/12</span>
+      </div>
+      <div style="flex: 1; padding: 20px; background: #fff;">
+        <div style="font-size: 18px; font-weight: bold; color: #588157;">第1课：变量与类型</div>
+        <div style="margin-top: 12px; font-size: 13px; line-height: 1.6;">
+          <p>Python 中的变量不需要声明类型，直接赋值即可...</p>
+          <div style="background: #f0f4f0; padding: 10px; border-radius: 4px; margin: 8px 0;">
+            <code>x = 10  # 整数</code>
+          </div>
+        </div>
+      </div>
+      <div style="background: #f5ebe0; padding: 12px 16px; display: flex; gap: 8px;">
+        <button class="mock-button" style="background: #588157; color: white;">上一课</button>
+        <button class="mock-button" style="background: #e9c46a;">生成练习题</button>
+        <button class="mock-button" style="background: #e9c46a;">向老师提问</button>
+        <button class="mock-button" style="background: #588157; color: white; margin-left: auto;">下一课</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="mockup" style="margin-top: 16px;">
+  <div class="mockup-header">方案 C：分栏布局（大纲 | 课件 | 聊天）</div>
+  <div class="mockup-body" style="display: flex; height: 280px;">
+    <div class="mock-sidebar" style="width: 160px; background: #f5ebe0; padding: 12px;">
+      <div style="font-weight: bold; margin-bottom: 8px;">📚 Python 入门</div>
+      <div style="padding: 4px 8px; background: #d4a373; color: white; border-radius: 4px; font-size: 11px;">✓ 1.1 变量</div>
+      <div style="padding: 4px 8px; font-size: 11px;">● 1.2 运算符</div>
+      <div style="padding: 4px 8px; font-size: 11px; color: #999;">○ 1.3 控制流</div>
+    </div>
+    <div style="flex: 1; padding: 16px; background: #fff; border-right: 1px solid #ddd;">
+      <div style="font-size: 16px; font-weight: bold;">第1课：变量与类型</div>
+      <div style="margin-top: 8px; font-size: 12px;">课件内容...</div>
+      <button class="mock-button" style="margin-top: 8px; background: #588157; color: white;">生成练习题</button>
+    </div>
+    <div style="width: 200px; background: #fefae0; padding: 12px;">
+      <div style="font-weight: bold; margin-bottom: 8px;">💬 与老师对话</div>
+      <div style="font-size: 11px; background: #fff; padding: 6px; border-radius: 4px; margin-bottom: 4px;">
+        <b>老师:</b> 有问题随时问我！
+      </div>
+      <div style="font-size: 11px; background: #d4a373; color: white; padding: 6px; border-radius: 4px; margin-bottom: 4px;">
+        <b>我:</b> 变量名有什么规则？
+      </div>
+      <input class="mock-input" style="width: 100%; margin-top: 4px;" placeholder="输入问题...">
+    </div>
+  </div>
+</div>
+
+<h3 style="margin-top: 24px;">对比分析</h3>
+<div class="pros-cons">
+  <div class="pros">
+    <h4>各方案优点</h4>
+    <ul>
+      <li><b>A:</b> 课程结构清晰可见，方便跳转</li>
+      <li><b>B:</b> 课件展示空间最大，沉浸感强</li>
+      <li><b>C:</b> 聊天互动更便捷，答疑体验好</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>各方案缺点</h4>
+    <ul>
+      <li><b>A:</b> 课件区域受限，复杂内容展示不佳</li>
+      <li><b>B:</b> 课程大纲需额外点击查看，跳转不便</li>
+      <li><b>C:</b> 三栏挤压空间，可能显得拥挤</li>
+    </ul>
+  </div>
+</div>
+
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>左侧大纲 + 右侧课件</h3>
+      <p>经典布局，课程进度一目了然</p>
+    </div>
+  </div>
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>顶部导航 + 全屏课件</h3>
+      <p>最大化课件展示，沉浸式学习</p>
+    </div>
+  </div>
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>大纲 + 课件 + 聊天三栏</h3>
+      <p>聊天答疑始终可见，互动便捷</p>
+    </div>
+  </div>
+  <div class="option" data-choice="d" onclick="toggleSelect(this)">
+    <div class="letter">D</div>
+    <div class="content">
+      <h3>混合方案</h3>
+      <p>我有其他想法或想组合上述方案</p>
+    </div>
+  </div>
+</div>
