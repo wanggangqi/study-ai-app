@@ -34,6 +34,12 @@ export interface Course {
   progress?: number;
   totalLessons?: number;
   completedLessons?: number;
+  chapters?: ChapterWithLessons[];
+}
+
+// 带课时的章节
+export interface ChapterWithLessons extends Chapter {
+  lessons?: Lesson[];
 }
 
 // 章节

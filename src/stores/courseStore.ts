@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { Course, Chapter, Lesson } from '../types';
+import type { Course, Chapter, Lesson, ChapterWithLessons } from '../types';
 
 interface CourseStore {
   courses: Course[];
@@ -36,11 +36,62 @@ export const useCourseStore = create<CourseStore>((set, get) => ({
 
   updateLessonStatus: (lessonId, status) => {
     set((state) => {
+      const newCompletedAt = status === 'completed' ? new Date().toISOString() : undefined;
+
+      // Update courses array - find and update the lesson in the nested structure
+      const updatedCourses = state.courses.map((course) => {
+        const chapters = course.chapters as ChapterWithLessons[] | undefined;
+        let lessonFound = false;
+        let totalLessons = 0;
+
+        // First pass: count total lessons and check if lesson belongs to this course
+        chapters?.forEach((chapter: ChapterWithLessons) => {
+          chapter.lessons?.forEach((lesson: Lesson) => {
+            totalLessons++;
+            if (lesson.id === lessonId) {
+              lessonFound = true;
+            }
+          });
+        });
+
+        if (!lessonFound) {
+          return course;
+        }
+
+        // Second pass: update the lesson and recalculate progress
+        const updatedChapters: ChapterWithLessons[] = chapters?.map((chapter: ChapterWithLessons) => ({
+          ...chapter,
+          lessons: chapter.lessons?.map((lesson: Lesson) =>
+            lesson.id === lessonId
+              ? { ...lesson, status, completedAt: newCompletedAt }
+              : lesson
+          ),
+        })) || [];
+
+        // Recalculate completed lessons count
+        let completedLessons = 0;
+        updatedChapters.forEach((chapter: ChapterWithLessons) => {
+          chapter.lessons?.forEach((lesson: Lesson) => {
+            if (lesson.status === 'completed') {
+              completedLessons++;
+            }
+          });
+        });
+
+        return {
+          ...course,
+          chapters: updatedChapters,
+          completedLessons,
+          progress: totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : 0,
+        };
+      });
+
+      // Update currentLesson
       const updatedLesson = state.currentLesson?.id === lessonId
-        ? { ...state.currentLesson, status, completedAt: status === 'completed' ? new Date().toISOString() : undefined }
+        ? { ...state.currentLesson, status, completedAt: newCompletedAt }
         : state.currentLesson;
 
-      // Update currentCourse progress if the lesson belongs to currentCourse
+      // Update currentCourse if it contains this lesson
       let updatedCurrentCourse = state.currentCourse;
       if (updatedLesson && state.currentCourse) {
         const completedCount = state.currentCourse.completedLessons || 0;
@@ -64,6 +115,7 @@ export const useCourseStore = create<CourseStore>((set, get) => ({
       }
 
       return {
+        courses: updatedCourses,
         currentLesson: updatedLesson,
         currentCourse: updatedCurrentCourse,
       };
