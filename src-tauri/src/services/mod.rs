@@ -6,6 +6,7 @@ pub mod machine_id;
 pub mod crypto;
 pub mod license;
 pub mod git_ops;
+pub mod ai;
 
 pub use machine_id::{get_machine_id, get_machine_hash, MachineIdError};
 pub use crypto::{encrypt_data, decrypt_data, CryptoError};
@@ -30,4 +31,16 @@ pub use git_ops::{
     add_remote,
     set_default_branch,
     GitError,
+};
+pub use ai::{
+    AIProvider,
+    AIConfig,
+    AIError,
+    ChatMessage,
+    AnalyzeResult,
+    chat,
+    generate_lesson,
+    generate_exercise,
+    analyze_answers,
+    verify_api_key,
 };
