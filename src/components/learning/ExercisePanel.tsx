@@ -44,7 +44,7 @@ export const ExercisePanel: React.FC<ExercisePanelProps> = ({
         // 将后端返回的结构转换为前端类型
         const frontExercises: Exercise[] = result.data.map((ex) => ({
           id: ex.id,
-          lessonId: ex.lesson_id,
+          lessonId: lessonId,
           question: ex.question,
           options: ex.options.map((opt) => ({
             id: opt.id,
