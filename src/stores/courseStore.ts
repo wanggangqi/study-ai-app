@@ -1,11 +1,30 @@
 import { create } from 'zustand';
-import type { Course, Chapter, Lesson, ChapterWithLessons } from '../types';
+import type { Course, Chapter, Lesson, ChapterWithLessons, Exercise } from '../types';
+import { tauriService, LessonStatus as BackendLessonStatus } from '../services/tauri';
+
+// 课时状态映射：前端状态 -> 后端状态
+const statusToBackend = (status: Lesson['status']): BackendLessonStatus => {
+  switch (status) {
+    case 'not_started':
+      return BackendLessonStatus.NotStarted;
+    case 'in_progress':
+      return BackendLessonStatus.InProgress;
+    case 'completed':
+      return BackendLessonStatus.Completed;
+    default:
+      return BackendLessonStatus.NotStarted;
+  }
+};
 
 interface CourseStore {
   courses: Course[];
   currentCourse: Course | null;
   currentChapter: Chapter | null;
   currentLesson: Lesson | null;
+  // 课件 HTML 内容，key 为 lessonId
+  lessonContents: Record<string, string>;
+  // 练习题列表
+  exercises: Exercise[];
 
   setCourses: (courses: Course[]) => void;
   addCourse: (course: Course) => void;
@@ -13,6 +32,9 @@ interface CourseStore {
   selectChapter: (chapter: Chapter | null) => void;
   selectLesson: (lesson: Lesson | null) => void;
   updateLessonStatus: (lessonId: string, status: Lesson['status']) => void;
+  setLessonContent: (lessonId: string, content: string) => void;
+  setExercises: (exercises: Exercise[]) => void;
+  submitExerciseAnswer: (exerciseId: string, answer: string) => void;
 }
 
 export const useCourseStore = create<CourseStore>((set, get) => ({
@@ -20,6 +42,8 @@ export const useCourseStore = create<CourseStore>((set, get) => ({
   currentCourse: null,
   currentChapter: null,
   currentLesson: null,
+  lessonContents: {},
+  exercises: [],
 
   setCourses: (courses) => set({ courses }),
 
@@ -35,6 +59,11 @@ export const useCourseStore = create<CourseStore>((set, get) => ({
   selectLesson: (lesson) => set({ currentLesson: lesson }),
 
   updateLessonStatus: (lessonId, status) => {
+    // 持久化到后端
+    tauriService.updateLessonStatus(lessonId, statusToBackend(status)).catch((err) => {
+      console.error('Failed to persist lesson status:', err);
+    });
+
     set((state) => {
       const newCompletedAt = status === 'completed' ? new Date().toISOString() : undefined;
 
@@ -120,5 +149,30 @@ export const useCourseStore = create<CourseStore>((set, get) => ({
         currentCourse: updatedCurrentCourse,
       };
     });
+  },
+
+  setLessonContent: (lessonId, content) => {
+    set((state) => ({
+      lessonContents: {
+        ...state.lessonContents,
+        [lessonId]: content,
+      },
+    }));
+  },
+
+  setExercises: (exercises) => set({ exercises }),
+
+  submitExerciseAnswer: (exerciseId, answer) => {
+    set((state) => ({
+      exercises: state.exercises.map((ex) =>
+        ex.id === exerciseId
+          ? {
+              ...ex,
+              userAnswer: answer,
+              isCorrect: answer === ex.correctAnswer,
+            }
+          : ex
+      ),
+    }));
   },
 }));

@@ -13,12 +13,13 @@ interface ExercisePanelProps {
 /**
  * 练习题面板组件
  * 支持选择题和填空题，展示练习题列表，提交答案，显示分析结果
+ * 得分超过 60% 自动标记课时为完成
  */
 export const ExercisePanel: React.FC<ExercisePanelProps> = ({
   lessonId,
   lessonContent,
 }) => {
-  const { exercises, setExercises, submitExerciseAnswer } = useCourseStore();
+  const { exercises, setExercises, submitExerciseAnswer, updateLessonStatus } = useCourseStore();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [currentAnswers, setCurrentAnswers] = useState<Record<string, string>>({});
@@ -93,7 +94,19 @@ export const ExercisePanel: React.FC<ExercisePanelProps> = ({
       }
     });
     setShowResults(true);
-  }, [lessonExercises, currentAnswers, submitExerciseAnswer]);
+
+    // 计算正确率，得分超过 60% 自动标记课时为完成
+    const correctCount = lessonExercises.filter((ex) => {
+      const answer = currentAnswers[ex.id];
+      return answer !== undefined && answer === ex.correctAnswer;
+    }).length;
+    const totalCount = lessonExercises.length;
+    const accuracy = totalCount > 0 ? Math.round((correctCount / totalCount) * 100) : 0;
+
+    if (accuracy >= 60) {
+      updateLessonStatus(lessonId, 'completed');
+    }
+  }, [lessonExercises, currentAnswers, submitExerciseAnswer, lessonId, updateLessonStatus]);
 
   // 判断是否为选择题（有选项）或填空题
   const isChoiceExercise = (exercise: Exercise): boolean => {
