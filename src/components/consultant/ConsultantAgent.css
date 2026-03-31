@@ -1,0 +1,241 @@
+.consultant-agent {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 1.5rem;
+  background: var(--card-bg, #ffffff);
+  border-radius: var(--radius-lg, 12px);
+}
+
+.progress-bar {
+  height: 4px;
+  background: var(--border-color, #e5e7eb);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-bottom: 0.5rem;
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--primary-color, #6366f1);
+  transition: width 0.3s ease;
+}
+
+.step-indicator {
+  font-size: 0.875rem;
+  color: var(--text-secondary, #6b7280);
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.question-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.question-text {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text-primary, #111827);
+  margin-bottom: 0.5rem;
+  text-align: center;
+}
+
+.question-desc {
+  font-size: 0.875rem;
+  color: var(--text-secondary, #6b7280);
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.option-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.option-btn {
+  padding: 1rem;
+  border: 2px solid var(--border-color, #e5e7eb);
+  border-radius: var(--radius-md, 8px);
+  background: var(--card-bg, #ffffff);
+  font-size: 1rem;
+  color: var(--text-primary, #111827);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.option-btn:hover {
+  border-color: var(--primary-color, #6366f1);
+  background: var(--primary-light, #eef2ff);
+}
+
+.option-btn.selected {
+  border-color: var(--primary-color, #6366f1);
+  background: var(--primary-color, #6366f1);
+  color: white;
+}
+
+.style-options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.style-option {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 1rem;
+  border: 2px solid var(--border-color, #e5e7eb);
+  border-radius: var(--radius-md, 8px);
+  background: var(--card-bg, #ffffff);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+}
+
+.style-option:hover {
+  border-color: var(--primary-color, #6366f1);
+}
+
+.style-option.selected {
+  border-color: var(--primary-color, #6366f1);
+  background: var(--primary-light, #eef2ff);
+}
+
+.style-name {
+  font-weight: 600;
+  color: var(--text-primary, #111827);
+}
+
+.style-desc {
+  font-size: 0.875rem;
+  color: var(--text-secondary, #6b7280);
+  margin-top: 0.25rem;
+}
+
+.answer-textarea {
+  width: 100%;
+  min-height: 120px;
+  padding: 1rem;
+  border: 2px solid var(--border-color, #e5e7eb);
+  border-radius: var(--radius-md, 8px);
+  font-size: 1rem;
+  resize: vertical;
+  margin-bottom: 1rem;
+}
+
+.answer-textarea:focus {
+  outline: none;
+  border-color: var(--primary-color, #6366f1);
+}
+
+.error-message {
+  color: var(--error-color, #ef4444);
+  font-size: 0.875rem;
+  text-align: center;
+  padding: 0.5rem;
+}
+
+.navigation-buttons {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+  margin-top: auto;
+  padding-top: 1.5rem;
+}
+
+.btn-primary,
+.btn-secondary {
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--radius-md, 8px);
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-primary {
+  background: var(--primary-color, #6366f1);
+  color: white;
+  border: none;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: var(--primary-dark, #4f46e5);
+}
+
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  background: transparent;
+  color: var(--text-primary, #111827);
+  border: 2px solid var(--border-color, #e5e7eb);
+}
+
+.btn-secondary:hover {
+  background: var(--bg-secondary, #f9fafb);
+}
+
+/* 课程计划结果样式 */
+.course-plan-result {
+  display: flex;
+  flex-direction: column;
+}
+
+.result-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.result-header h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text-primary, #111827);
+  margin-bottom: 0.5rem;
+}
+
+.result-header p {
+  color: var(--text-secondary, #6b7280);
+}
+
+.plan-card {
+  background: var(--bg-secondary, #f9fafb);
+  border-radius: var(--radius-lg, 12px);
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.plan-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--border-color, #e5e7eb);
+}
+
+.plan-item:last-child {
+  border-bottom: none;
+}
+
+.plan-label {
+  font-weight: 500;
+  color: var(--text-secondary, #6b7280);
+}
+
+.plan-value {
+  color: var(--text-primary, #111827);
+  font-weight: 600;
+}
+
+.result-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+}

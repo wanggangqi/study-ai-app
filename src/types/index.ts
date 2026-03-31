@@ -20,6 +20,15 @@ export interface UserConfig {
   gitEmail: string;
 }
 
+// 课程计划（咨询师输出）
+export interface CoursePlan {
+  name: string;
+  targetLevel: string;
+  duration: string;
+  teachingStyle: string;
+  baseKnowledge: string;
+}
+
 // 课程
 export interface Course {
   id: string;
@@ -80,3 +89,14 @@ export interface TeachingStyle {
   description: string;
   icon: string;
 }
+
+// 默认模型映射
+export const DEFAULT_MODELS: Record<AIProvider, string> = {
+  claude: 'claude-3-sonnet-20240229',
+  openai: 'gpt-4o',
+  qwen: 'qwen-plus',
+  deepseek: 'deepseek-chat',
+  glm: 'glm-4-flash',
+  minimax: 'abab5.5-chat',
+  kimi: 'moonshot-v1-8k',
+};
