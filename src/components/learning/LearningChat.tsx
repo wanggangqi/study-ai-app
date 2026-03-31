@@ -2,9 +2,12 @@ import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { Button } from '../common/Button';
 import { TeacherAgent } from '../teacher/TeacherAgent';
 import { chatWithAI } from '../../hooks/useAI';
+import { useChatStore } from '../../stores/chatStore';
 import './LearningChat.css';
 
 interface LearningChatProps {
+  courseId: string;
+  lessonId: string;
   courseName: string;
   chapterName: string;
   lessonName: string;
@@ -17,12 +20,6 @@ interface LearningChatProps {
  * 包装 TeacherAgent，提供快捷问题按钮，专用于三栏布局的答疑区域
  */
 
-// 聊天消息类型
-interface ChatMessage {
-  role: 'system' | 'user' | 'assistant';
-  content: string;
-}
-
 // 快捷问题配置
 const QUICK_QUESTIONS = [
   { id: 'exercise', label: '生成练习题', icon: '📝' },
@@ -31,6 +28,8 @@ const QUICK_QUESTIONS = [
 ];
 
 export const LearningChat: React.FC<LearningChatProps> = ({
+  courseId,
+  lessonId,
   courseName,
   chapterName,
   lessonName,
@@ -38,11 +37,14 @@ export const LearningChat: React.FC<LearningChatProps> = ({
   initialLessonHtml,
 }) => {
   const [showTeacherAgent, setShowTeacherAgent] = useState(false);
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [userInput, setUserInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // 使用 chatStore 持久化消息
+  const messages = useChatStore((state) => state.teacherMessages);
+  const addTeacherMessage = useChatStore((state) => state.addTeacherMessage);
 
   // 自动滚动到最新消息
   const scrollToBottom = useCallback(() => {
@@ -55,26 +57,35 @@ export const LearningChat: React.FC<LearningChatProps> = ({
 
   // 初始化欢迎消息
   useEffect(() => {
-    const welcomeMessage: ChatMessage = {
-      role: 'assistant',
-      content: `你好！我是你的学习助手。\n\n关于「${lessonName}」这个课时，有什么问题可以随时问我。我可以帮你：\n- 解答疑惑\n- 解释概念\n- 生成练习题\n- 提供更多例子`,
-    };
-    setMessages([welcomeMessage]);
-  }, [lessonName]);
+    // 避免重复添加欢迎消息
+    if (messages.length === 0) {
+      addTeacherMessage({
+        courseId,
+        lessonId,
+        agentType: 'teacher',
+        role: 'assistant',
+        content: `你好！我是你的学习助手。\n\n关于「${lessonName}」这个课时，有什么问题可以随时问我。我可以帮你：\n- 解答疑惑\n- 解释概念\n- 生成练习题\n- 提供更多例子`,
+      });
+    }
+  }, [lessonName, courseId, lessonId, addTeacherMessage, messages.length]);
 
   // 发送消息
   const handleSendMessage = useCallback(async () => {
     if (!userInput.trim()) return;
 
-    const userMessage: ChatMessage = {
-      role: 'user',
-      content: userInput,
-    };
-
-    setMessages((prev) => [...prev, userMessage]);
+    const userMessageContent = userInput;
     setUserInput('');
     setIsLoading(true);
     setError(null);
+
+    // 添加用户消息到 store
+    addTeacherMessage({
+      courseId,
+      lessonId,
+      agentType: 'teacher',
+      role: 'user',
+      content: userMessageContent,
+    });
 
     const systemPrompt = `你是一位专业的教师，擅长以「${teachingStyle}」风格进行教学。
 当前课程：${courseName}
@@ -84,21 +95,25 @@ ${initialLessonHtml ? `课件内容：\n${initialLessonHtml}` : ''}
 
 请根据课件内容和用户的问题，提供清晰、准确的回答。保持友好、耐心的教学态度。`;
 
-    const contextMessages: ChatMessage[] = [
-      { role: 'system', content: systemPrompt },
-      ...messages,
-      userMessage,
+    // 构建 AI 上下文消息（使用本地格式）
+    const aiContextMessages = [
+      { role: 'system' as const, content: systemPrompt },
+      ...messages.map((m) => ({ role: m.role, content: m.content })),
+      { role: 'user' as const, content: userMessageContent },
     ];
 
     try {
-      const result = await chatWithAI(contextMessages);
+      const result = await chatWithAI(aiContextMessages);
 
       if (result.success && result.data) {
-        const assistantMessage: ChatMessage = {
+        // 添加助手消息到 store
+        addTeacherMessage({
+          courseId,
+          lessonId,
+          agentType: 'teacher',
           role: 'assistant',
           content: result.data,
-        };
-        setMessages((prev) => [...prev, assistantMessage]);
+        });
       } else {
         setError(result.error || 'AI 响应失败');
       }
@@ -107,7 +122,7 @@ ${initialLessonHtml ? `课件内容：\n${initialLessonHtml}` : ''}
     } finally {
       setIsLoading(false);
     }
-  }, [userInput, messages, teachingStyle, courseName, chapterName, lessonName, initialLessonHtml]);
+  }, [userInput, messages, teachingStyle, courseName, chapterName, lessonName, initialLessonHtml, courseId, lessonId, addTeacherMessage]);
 
   // 快捷问题
   const handleQuickQuestion = useCallback(
@@ -131,15 +146,18 @@ ${initialLessonHtml ? `课件内容：\n${initialLessonHtml}` : ''}
 
       // 延迟发送以显示用户输入
       setTimeout(async () => {
-        const userMessage: ChatMessage = {
-          role: 'user',
-          content: question,
-        };
-
-        setMessages((prev) => [...prev, userMessage]);
         setUserInput('');
         setIsLoading(true);
         setError(null);
+
+        // 添加用户消息到 store
+        addTeacherMessage({
+          courseId,
+          lessonId,
+          agentType: 'teacher',
+          role: 'user',
+          content: question,
+        });
 
         const systemPrompt = `你是一位专业的教师，擅长以「${teachingStyle}」风格进行教学。
 当前课程：${courseName}
@@ -149,21 +167,25 @@ ${initialLessonHtml ? `课件内容：\n${initialLessonHtml}` : ''}
 
 请根据课件内容和用户的问题，提供清晰、准确的回答。保持友好、耐心的教学态度。`;
 
-        const contextMessages: ChatMessage[] = [
-          { role: 'system', content: systemPrompt },
-          ...messages,
-          userMessage,
+        // 构建 AI 上下文消息（使用本地格式）
+        const aiContextMessages = [
+          { role: 'system' as const, content: systemPrompt },
+          ...messages.map((m) => ({ role: m.role, content: m.content })),
+          { role: 'user' as const, content: question },
         ];
 
         try {
-          const result = await chatWithAI(contextMessages);
+          const result = await chatWithAI(aiContextMessages);
 
           if (result.success && result.data) {
-            const assistantMessage: ChatMessage = {
+            // 添加助手消息到 store
+            addTeacherMessage({
+              courseId,
+              lessonId,
+              agentType: 'teacher',
               role: 'assistant',
               content: result.data,
-            };
-            setMessages((prev) => [...prev, assistantMessage]);
+            });
           } else {
             setError(result.error || 'AI 响应失败');
           }
@@ -174,7 +196,7 @@ ${initialLessonHtml ? `课件内容：\n${initialLessonHtml}` : ''}
         }
       }, 100);
     },
-    [messages, teachingStyle, courseName, chapterName, lessonName, initialLessonHtml]
+    [messages, teachingStyle, courseName, chapterName, lessonName, initialLessonHtml, courseId, lessonId, addTeacherMessage]
   );
 
   // 切换到 TeacherAgent（用于更复杂的功能）

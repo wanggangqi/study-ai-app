@@ -361,6 +361,8 @@ export const LearningPage: React.FC = () => {
                   />
                 ) : (
                   <LearningChat
+                    courseId={currentCourse.id}
+                    lessonId={currentLesson.id}
                     courseName={currentCourse.name}
                     chapterName={currentChapter?.name || ''}
                     lessonName={currentLesson.name}
