@@ -154,6 +154,25 @@ pub struct AnalyzeResult {
     pub weak_points: Vec<String>,
 }
 
+/// 练习题选项
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ExerciseOption {
+    pub id: String,
+    pub label: String,
+    pub content: String,
+}
+
+/// 结构化练习题
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StructuredExercise {
+    pub id: String,
+    pub lesson_id: String,
+    pub question: String,
+    pub options: Vec<ExerciseOption>,
+    pub correct_answer: String,
+    pub explanation: Option<String>,
+}
+
 /// 发送聊天消息到 AI
 pub async fn chat(config: &AIConfig, messages: Vec<ChatMessage>) -> Result<String, AIError> {
     let client = Client::new();
@@ -422,4 +441,68 @@ pub async fn verify_api_key(config: &AIConfig) -> Result<bool, AIError> {
         Err(AIError::ApiError(_)) => Ok(false),
         Err(e) => Err(e),
     }
+}
+
+/// 生成结构化练习题
+pub async fn generate_structured_exercise(
+    config: &AIConfig,
+    lesson_id: &str,
+    lesson_content: &str,
+) -> Result<Vec<StructuredExercise>, AIError> {
+    let system_prompt = r#"你是一位专业的教师，请根据课件内容生成结构化的练习题。
+返回 JSON 格式的数组，每道题包含：
+- id: 题目唯一ID（格式：exercise_1, exercise_2, ...）
+- lesson_id: 课时ID
+- question: 题目文本
+- options: 选项数组（选择题有此字段，填空题为空数组），每个选项包含 id（a/b/c/d）、label（A/B/C/D）、content（选项内容）
+- correct_answer: 正确答案（选择题为选项ID，填空题为正确答案文本）
+- explanation: 题目的详细解析
+
+返回格式示例：
+[
+  {
+    "id": "exercise_1",
+    "lesson_id": "lesson_001",
+    "question": "以下哪个是 Python 的变量命名规则？",
+    "options": [
+      {"id": "a", "label": "A", "content": "可以以数字开头"},
+      {"id": "b", "label": "B", "content": "可以包含空格"},
+      {"id": "c", "label": "C", "content": "区分大小写"},
+      {"id": "d", "label": "D", "content": "以关键字命名"}
+    ],
+    "correct_answer": "c",
+    "explanation": "Python 变量命名规则：必须以字母或下划线开头，不能以数字开头，不能包含空格，区分大小写。"
+  },
+  {
+    "id": "exercise_2",
+    "lesson_id": "lesson_001",
+    "question": "在 Python 中，print 函数用于_______。",
+    "options": [],
+    "correct_answer": "输出内容到控制台",
+    "explanation": "print 函数是 Python 的基本输出函数，用于将内容打印显示到控制台。"
+  }
+]
+
+请生成 5-8 道练习题，包含选择题和填空题，难度适中。"#.to_string();
+
+    let user_prompt = format!(
+        "请根据以下课件内容生成结构化的练习题：\n\
+        课件内容：\n{}\n\
+        课时ID：{}\n\
+        请返回 JSON 格式的练习题数组。",
+        lesson_content, lesson_id
+    );
+
+    let messages = vec![
+        ChatMessage { role: "system".to_string(), content: system_prompt },
+        ChatMessage { role: "user".to_string(), content: user_prompt },
+    ];
+
+    let response = chat(config, messages).await?;
+
+    // 解析 JSON 结果
+    let exercises: Vec<StructuredExercise> = serde_json::from_str(&response)
+        .map_err(|e| AIError::ParseError(format!("解析练习题数据失败: {}", e)))?;
+
+    Ok(exercises)
 }

@@ -70,6 +70,7 @@ use commands::{
     ai_generate_exercise_command,
     ai_analyze_answers_command,
     ai_verify_key_command,
+    ai_generate_structured_exercise_command,
 };
 use db::Database;
 
@@ -158,6 +159,7 @@ pub fn run() {
             ai_generate_exercise_command,
             ai_analyze_answers_command,
             ai_verify_key_command,
+            ai_generate_structured_exercise_command,
         ])
         .setup(|app| {
             let window = app.get_webview_window("main").unwrap();

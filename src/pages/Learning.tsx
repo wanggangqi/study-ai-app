@@ -1,10 +1,11 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card } from '../components/common/Card';
 import { Button } from '../components/common/Button';
 import { Sidebar } from '../components/common/Sidebar';
 import { TeacherAgent } from '../components/teacher/TeacherAgent';
 import { CoursewareViewer } from '../components/learning/CoursewareViewer';
+import { ExercisePanel } from '../components/learning/ExercisePanel';
 import { useCourseStore } from '../stores/courseStore';
 import type { Lesson, ChapterWithLessons } from '../types';
 
@@ -14,9 +15,13 @@ const navItems = [
   { icon: '⚙️', label: '设置', path: '/settings' },
 ];
 
+// 右侧边栏标签类型
+type RightSidebarTab = 'exercise' | 'chat';
+
 export const LearningPage: React.FC = () => {
   const { courseId } = useParams<{ courseId: string }>();
   const navigate = useNavigate();
+  const [rightSidebarTab, setRightSidebarTab] = useState<RightSidebarTab>('exercise');
   const {
     currentCourse,
     currentChapter,
@@ -314,7 +319,7 @@ export const LearningPage: React.FC = () => {
           </Card>
         </main>
 
-        {/* 右侧边栏 - 教师助手 */}
+        {/* 右侧边栏 - 练习题和答疑 */}
         <aside className="w-80 bg-bg-secondary border-l border-gray-200 flex flex-col overflow-hidden">
           {currentLesson && currentCourse ? (
             <div className="flex-1 flex flex-col overflow-hidden">
@@ -324,13 +329,44 @@ export const LearningPage: React.FC = () => {
                   {currentCourse.name} / {currentLesson.name}
                 </p>
               </div>
+              {/* 标签切换 */}
+              <div className="flex border-b border-gray-200 bg-gray-50">
+                <button
+                  className={`flex-1 px-4 py-2.5 text-sm font-medium transition-colors ${
+                    rightSidebarTab === 'exercise'
+                      ? 'text-primary border-b-2 border-primary bg-white'
+                      : 'text-gray-500 hover:text-gray-700'
+                  }`}
+                  onClick={() => setRightSidebarTab('exercise')}
+                >
+                  练习题
+                </button>
+                <button
+                  className={`flex-1 px-4 py-2.5 text-sm font-medium transition-colors ${
+                    rightSidebarTab === 'chat'
+                      ? 'text-primary border-b-2 border-primary bg-white'
+                      : 'text-gray-500 hover:text-gray-700'
+                  }`}
+                  onClick={() => setRightSidebarTab('chat')}
+                >
+                  答疑
+                </button>
+              </div>
+              {/* 标签内容 */}
               <div className="flex-1 overflow-hidden">
-                <TeacherAgent
-                  courseName={currentCourse.name}
-                  chapterName={currentChapter?.name || ''}
-                  lessonName={currentLesson.name}
-                  teachingStyle={currentCourse.teachingStyle}
-                />
+                {rightSidebarTab === 'exercise' ? (
+                  <ExercisePanel
+                    lessonId={currentLesson.id}
+                    lessonContent={currentLessonContent || null}
+                  />
+                ) : (
+                  <TeacherAgent
+                    courseName={currentCourse.name}
+                    chapterName={currentChapter?.name || ''}
+                    lessonName={currentLesson.name}
+                    teachingStyle={currentCourse.teachingStyle}
+                  />
+                )}
               </div>
             </div>
           ) : (
@@ -339,7 +375,7 @@ export const LearningPage: React.FC = () => {
               <p className="text-center text-sm">
                 选择一个课时后
                 <br />
-                可以向 AI 老师提问
+                可以使用学习助手
               </p>
             </div>
           )}

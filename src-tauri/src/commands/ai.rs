@@ -6,12 +6,13 @@ use crate::services::{
     AIProvider,
     AIConfig,
     ChatMessage,
-    AnalyzeResult,
+    StructuredExercise,
     chat,
     generate_lesson,
     generate_exercise,
     analyze_answers,
     verify_api_key,
+    generate_structured_exercise,
 };
 use serde::{Deserialize, Serialize};
 use tauri::async_runtime::block_on;
@@ -260,5 +261,48 @@ pub fn ai_verify_key_command(params: AIVerifyKeyParams) -> AIResult {
             error: None,
         },
         Err(e) => AIResult { success: false, data: None, error: Some(e.to_string()) },
+    }
+}
+
+/// AI 生成结构化练习题命令参数
+#[derive(Debug, Serialize, Deserialize)]
+pub struct AIGenerateStructuredExerciseParams {
+    pub provider: String,
+    pub api_key: String,
+    pub model: Option<String>,
+    pub lesson_id: String,
+    pub lesson_content: String,
+}
+
+/// 结构化练习题命令结果
+#[derive(Debug, Serialize, Deserialize)]
+pub struct AIStructuredExerciseResult {
+    pub success: bool,
+    pub data: Option<Vec<StructuredExercise>>,
+    pub error: Option<String>,
+}
+
+/// AI 生成结构化练习题命令
+#[tauri::command]
+pub fn ai_generate_structured_exercise_command(params: AIGenerateStructuredExerciseParams) -> AIStructuredExerciseResult {
+    let provider = match parse_provider(&params.provider) {
+        Ok(p) => p,
+        Err(e) => return AIStructuredExerciseResult { success: false, data: None, error: Some(e) },
+    };
+
+    let config = AIConfig::new(provider, params.api_key);
+    let config = if let Some(model) = params.model {
+        config.with_model(model)
+    } else {
+        config
+    };
+
+    let result = block_on(async {
+        generate_structured_exercise(&config, &params.lesson_id, &params.lesson_content).await
+    });
+
+    match result {
+        Ok(exercises) => AIStructuredExerciseResult { success: true, data: Some(exercises), error: None },
+        Err(e) => AIStructuredExerciseResult { success: false, data: None, error: Some(e.to_string()) },
     }
 }

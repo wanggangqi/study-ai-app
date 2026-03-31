@@ -17,6 +17,30 @@ interface AIAnalyzeResult {
   error?: string;
 }
 
+// 练习题选项
+interface ExerciseOption {
+  id: string;
+  label: string;
+  content: string;
+}
+
+// 结构化练习题
+interface StructuredExercise {
+  id: string;
+  lesson_id: string;
+  question: string;
+  options: ExerciseOption[];
+  correct_answer: string;
+  explanation?: string;
+}
+
+// 结构化练习题结果
+interface AIStructuredExerciseResult {
+  success: boolean;
+  data?: StructuredExercise[];
+  error?: string;
+}
+
 interface ChatMessage {
   role: 'system' | 'user' | 'assistant';
   content: string;
@@ -125,6 +149,29 @@ export async function verifyAPIKey(
     params: {
       provider,
       api_key: apiKey,
+    },
+  });
+}
+
+/**
+ * 生成结构化练习题
+ */
+export async function generateStructuredExercise(
+  lessonId: string,
+  lessonContent: string,
+  provider?: AIProvider,
+  apiKey?: string,
+  model?: string
+): Promise<AIStructuredExerciseResult> {
+  const config = useConfigStore.getState();
+
+  return invoke<AIStructuredExerciseResult>('ai_generate_structured_exercise_command', {
+    params: {
+      provider: provider || config.aiProvider,
+      api_key: apiKey || config.aiApiKey,
+      model: model || config.aiModel || null,
+      lesson_id: lessonId,
+      lesson_content: lessonContent,
     },
   });
 }

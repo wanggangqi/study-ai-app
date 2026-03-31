@@ -38,9 +38,12 @@ pub use ai::{
     AIError,
     ChatMessage,
     AnalyzeResult,
+    ExerciseOption,
+    StructuredExercise,
     chat,
     generate_lesson,
     generate_exercise,
     analyze_answers,
     verify_api_key,
+    generate_structured_exercise,
 };
