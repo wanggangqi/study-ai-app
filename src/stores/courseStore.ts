@@ -25,9 +25,12 @@ interface CourseStore {
   lessonContents: Record<string, string>;
   // 练习题列表
   exercises: Exercise[];
+  // 加载状态
+  isLoading: boolean;
 
   setCourses: (courses: Course[]) => void;
   addCourse: (course: Course) => void;
+  loadCourses: () => Promise<void>;
   selectCourse: (courseId: string) => void;
   selectChapter: (chapter: Chapter | null) => void;
   selectLesson: (lesson: Lesson | null) => void;
@@ -44,10 +47,22 @@ export const useCourseStore = create<CourseStore>((set, get) => ({
   currentLesson: null,
   lessonContents: {},
   exercises: [],
+  isLoading: false,
 
   setCourses: (courses) => set({ courses }),
 
   addCourse: (course) => set((state) => ({ courses: [...state.courses, course] })),
+
+  loadCourses: async () => {
+    set({ isLoading: true });
+    try {
+      const courses = await tauriService.getCourses();
+      set({ courses, isLoading: false });
+    } catch (error) {
+      console.error('Failed to load courses:', error);
+      set({ isLoading: false });
+    }
+  },
 
   selectCourse: (courseId) => {
     const course = get().courses.find((c) => c.id === courseId);

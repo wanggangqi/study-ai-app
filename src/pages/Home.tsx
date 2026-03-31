@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Sidebar } from '../components/common/Sidebar';
 import { Card } from '../components/common/Card';
@@ -13,7 +13,11 @@ const navItems = [
 
 export const HomePage: React.FC = () => {
   const navigate = useNavigate();
-  const { courses } = useCourseStore();
+  const { courses, loadCourses } = useCourseStore();
+
+  useEffect(() => {
+    loadCourses();
+  }, [loadCourses]);
 
   return (
     <div className="flex min-h-screen">

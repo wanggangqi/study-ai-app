@@ -71,6 +71,32 @@ export interface Lesson {
   lessonFile?: string;
 }
 
+// 课件 HTML 内容
+export interface CourseContent {
+  lessonId: string;
+  html: string;
+  updatedAt: string;
+}
+
+// 练习题选项
+export interface ExerciseOption {
+  id: string;
+  label: string;
+  content: string;
+}
+
+// 练习题
+export interface Exercise {
+  id: string;
+  lessonId: string;
+  question: string;
+  options: ExerciseOption[];
+  correctAnswer: string; // 选项 id
+  explanation?: string;
+  userAnswer?: string; // 用户选择的选项 id
+  isCorrect?: boolean; // 回答是否正确
+}
+
 // 消息
 export interface ChatMessage {
   id: string;

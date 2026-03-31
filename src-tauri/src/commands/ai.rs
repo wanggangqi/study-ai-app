@@ -14,6 +14,7 @@ use crate::services::{
     verify_api_key,
     generate_structured_exercise,
 };
+
 use serde::{Deserialize, Serialize};
 use tauri::async_runtime::block_on;
 

@@ -6,12 +6,17 @@ export const useCourse = () => {
     currentCourse,
     currentChapter,
     currentLesson,
+    lessonContents,
+    exercises,
     setCourses,
     addCourse,
     selectCourse,
     selectChapter,
     selectLesson,
     updateLessonStatus,
+    setLessonContent,
+    setExercises,
+    submitExerciseAnswer,
   } = useCourseStore();
 
   return {
@@ -19,11 +24,16 @@ export const useCourse = () => {
     currentCourse,
     currentChapter,
     currentLesson,
+    lessonContents,
+    exercises,
     setCourses,
     addCourse,
     selectCourse,
     selectChapter,
     selectLesson,
     updateLessonStatus,
+    setLessonContent,
+    setExercises,
+    submitExerciseAnswer,
   };
 };

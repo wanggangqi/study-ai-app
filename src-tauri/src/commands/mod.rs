@@ -9,6 +9,25 @@ pub mod gitee;
 pub mod sync;
 pub mod ai;
 
+pub use ai::{
+    ai_chat_command,
+    ai_generate_lesson_command,
+    ai_generate_exercise_command,
+    ai_analyze_answers_command,
+    ai_verify_key_command,
+    ai_generate_structured_exercise_command,
+    AIChatParams,
+    ChatMessageParams,
+    AIGenerateLessonParams,
+    AIGenerateExerciseParams,
+    AIAnalyzeAnswersParams,
+    AIVerifyKeyParams,
+    AIGenerateStructuredExerciseParams,
+    AIStructuredExerciseResult,
+    AIResult,
+    AIAnalyzeResult,
+};
+
 pub use auth::{
     get_machine_id_command,
     get_machine_hash_command,
@@ -84,23 +103,4 @@ pub use gitee::{
     GiteeError,
     GiteeAccountResult,
     GiteeRepoResult,
-};
-
-pub use ai::{
-    ai_chat_command,
-    ai_generate_lesson_command,
-    ai_generate_exercise_command,
-    ai_analyze_answers_command,
-    ai_verify_key_command,
-    ai_generate_structured_exercise_command,
-    AIChatParams,
-    ChatMessageParams,
-    AIGenerateLessonParams,
-    AIGenerateExerciseParams,
-    AIAnalyzeAnswersParams,
-    AIVerifyKeyParams,
-    AIGenerateStructuredExerciseParams,
-    AIStructuredExerciseResult,
-    AIResult,
-    AIAnalyzeResult,
 };

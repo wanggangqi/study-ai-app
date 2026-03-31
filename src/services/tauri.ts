@@ -1,4 +1,5 @@
 import { invoke } from '@tauri-apps/api/core';
+import type { Course } from '../types';
 
 // 课时状态枚举（与后端 LessonStatus 对应）
 export enum LessonStatus {
@@ -6,6 +7,46 @@ export enum LessonStatus {
   InProgress = 1,
   Completed = 2,
 }
+
+// 后端 Course 数据结构（snake_case）
+interface BackendCourse {
+  id: string;
+  name: string;
+  gitee_repo_url: string | null;
+  local_path: string | null;
+  target_level: string | null;
+  duration: string | null;
+  teaching_style: string | null;
+  created_at: string;
+  status: number;
+}
+
+// 课程状态映射：后端数值 -> 前端字符串
+const statusFromBackend = (status: number): Course['status'] => {
+  switch (status) {
+    case 0:
+      return 'active';
+    case 1:
+      return 'completed';
+    case 2:
+      return 'paused';
+    default:
+      return 'active';
+  }
+};
+
+// 转换后端数据为前端格式
+const transformCourse = (data: BackendCourse): Course => ({
+  id: data.id,
+  name: data.name,
+  giteeRepoUrl: data.gitee_repo_url || '',
+  localPath: data.local_path || '',
+  targetLevel: data.target_level || '',
+  duration: data.duration || '',
+  teachingStyle: data.teaching_style || '',
+  createdAt: data.created_at,
+  status: statusFromBackend(data.status),
+});
 
 // Tauri 命令调用封装
 export const tauriService = {
@@ -33,8 +74,9 @@ export const tauriService = {
     return invoke('clone_repo', { url, path });
   },
 
-  async getCourses(): Promise<object[]> {
-    return invoke('get_courses');
+  async getCourses(): Promise<Course[]> {
+    const data = await invoke<BackendCourse[]>('get_all_courses');
+    return data.map(transformCourse);
   },
 
   async saveCourse(course: object): Promise<void> {
