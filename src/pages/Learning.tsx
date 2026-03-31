@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Card } from '../components/common/Card';
 import { Button } from '../components/common/Button';
 import { Sidebar } from '../components/common/Sidebar';
-import { TeacherAgent } from '../components/teacher/TeacherAgent';
+import { LearningChat } from '../components/learning/LearningChat';
 import { CoursewareViewer } from '../components/learning/CoursewareViewer';
 import { ExercisePanel } from '../components/learning/ExercisePanel';
 import { useCourseStore } from '../stores/courseStore';
@@ -360,11 +360,12 @@ export const LearningPage: React.FC = () => {
                     lessonContent={currentLessonContent || null}
                   />
                 ) : (
-                  <TeacherAgent
+                  <LearningChat
                     courseName={currentCourse.name}
                     chapterName={currentChapter?.name || ''}
                     lessonName={currentLesson.name}
                     teachingStyle={currentCourse.teachingStyle}
+                    initialLessonHtml={currentLessonContent || undefined}
                   />
                 )}
               </div>
