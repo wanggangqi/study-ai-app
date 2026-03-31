@@ -64,6 +64,12 @@ use commands::{
     verify_gitee_account,
     create_gitee_repo,
     check_gitee_repo_exists,
+    // AI 命令
+    ai_chat_command,
+    ai_generate_lesson_command,
+    ai_generate_exercise_command,
+    ai_analyze_answers_command,
+    ai_verify_key_command,
 };
 use db::Database;
 
@@ -146,6 +152,12 @@ pub fn run() {
             verify_gitee_account,
             create_gitee_repo,
             check_gitee_repo_exists,
+            // AI 相关命令
+            ai_chat_command,
+            ai_generate_lesson_command,
+            ai_generate_exercise_command,
+            ai_analyze_answers_command,
+            ai_verify_key_command,
         ])
         .setup(|app| {
             let window = app.get_webview_window("main").unwrap();

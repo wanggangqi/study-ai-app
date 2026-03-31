@@ -7,6 +7,7 @@ pub mod database;
 pub mod git;
 pub mod gitee;
 pub mod sync;
+pub mod ai;
 
 pub use auth::{
     get_machine_id_command,
@@ -83,4 +84,20 @@ pub use gitee::{
     GiteeError,
     GiteeAccountResult,
     GiteeRepoResult,
+};
+
+pub use ai::{
+    ai_chat_command,
+    ai_generate_lesson_command,
+    ai_generate_exercise_command,
+    ai_analyze_answers_command,
+    ai_verify_key_command,
+    AIChatParams,
+    ChatMessageParams,
+    AIGenerateLessonParams,
+    AIGenerateExerciseParams,
+    AIAnalyzeAnswersParams,
+    AIVerifyKeyParams,
+    AIResult,
+    AIAnalyzeResult,
 };
