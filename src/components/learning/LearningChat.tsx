@@ -42,9 +42,17 @@ export const LearningChat: React.FC<LearningChatProps> = ({
   const [error, setError] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // 使用 chatStore 持久化消息
-  const messages = useChatStore((state) => state.teacherMessages);
+  // 使用 chatStore 持久化消息，按 courseId/lessonId 隔离
+  const allMessages = useChatStore((state) => state.teacherMessages);
   const addTeacherMessage = useChatStore((state) => state.addTeacherMessage);
+
+  // 按当前 courseId/lessonId 过滤消息
+  const messages = allMessages.filter(
+    (msg) => msg.courseId === courseId && msg.lessonId === lessonId
+  );
+
+  // 跟踪欢迎消息是否已添加（防止切换课时时重复添加）
+  const welcomeAddedRef = useRef(false);
 
   // 自动滚动到最新消息
   const scrollToBottom = useCallback(() => {
@@ -57,17 +65,26 @@ export const LearningChat: React.FC<LearningChatProps> = ({
 
   // 初始化欢迎消息
   useEffect(() => {
-    // 避免重复添加欢迎消息
-    if (messages.length === 0) {
-      addTeacherMessage({
-        courseId,
-        lessonId,
-        agentType: 'teacher',
-        role: 'assistant',
-        content: `你好！我是你的学习助手。\n\n关于「${lessonName}」这个课时，有什么问题可以随时问我。我可以帮你：\n- 解答疑惑\n- 解释概念\n- 生成练习题\n- 提供更多例子`,
-      });
-    }
-  }, [lessonName, courseId, lessonId, addTeacherMessage, messages.length]);
+    // 重置欢迎消息标志（切换课时时）
+    welcomeAddedRef.current = false;
+
+    // 延迟检查，确保消息已加载
+    const timer = setTimeout(() => {
+      // 避免重复添加欢迎消息
+      if (messages.length === 0 && !welcomeAddedRef.current) {
+        welcomeAddedRef.current = true;
+        addTeacherMessage({
+          courseId,
+          lessonId,
+          agentType: 'teacher',
+          role: 'assistant',
+          content: `你好！我是你的学习助手。\n\n关于「${lessonName}」这个课时，有什么问题可以随时问我。我可以帮你：\n- 解答疑惑\n- 解释概念\n- 生成练习题\n- 提供更多例子`,
+        });
+      }
+    }, 100);
+
+    return () => clearTimeout(timer);
+  }, [lessonName, courseId, lessonId, addTeacherMessage]);
 
   // 发送消息
   const handleSendMessage = useCallback(async () => {

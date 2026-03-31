@@ -2,6 +2,31 @@ import { create } from 'zustand';
 import type { Course, Chapter, Lesson, ChapterWithLessons, Exercise } from '../types';
 import { tauriService, LessonStatus as BackendLessonStatus } from '../services/tauri';
 
+// localStorage keys
+const STORAGE_KEYS = {
+  LESSON_CONTENTS: 'studymate_lesson_contents',
+  EXERCISES: 'studymate_exercises',
+};
+
+// 从 localStorage 加载数据
+const loadFromStorage = <T>(key: string, defaultValue: T): T => {
+  try {
+    const stored = localStorage.getItem(key);
+    return stored ? JSON.parse(stored) : defaultValue;
+  } catch {
+    return defaultValue;
+  }
+};
+
+// 保存数据到 localStorage
+const saveToStorage = <T>(key: string, value: T): void => {
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+  } catch (e) {
+    console.error(`Failed to save ${key} to localStorage:`, e);
+  }
+};
+
 // 课时状态映射：前端状态 -> 后端状态
 const statusToBackend = (status: Lesson['status']): BackendLessonStatus => {
   switch (status) {
@@ -45,8 +70,9 @@ export const useCourseStore = create<CourseStore>((set, get) => ({
   currentCourse: null,
   currentChapter: null,
   currentLesson: null,
-  lessonContents: {},
-  exercises: [],
+  // 从 localStorage 加载持久化的数据
+  lessonContents: loadFromStorage(STORAGE_KEYS.LESSON_CONTENTS, {}),
+  exercises: loadFromStorage(STORAGE_KEYS.EXERCISES, []),
   isLoading: false,
 
   setCourses: (courses) => set({ courses }),
@@ -167,19 +193,26 @@ export const useCourseStore = create<CourseStore>((set, get) => ({
   },
 
   setLessonContent: (lessonId, content) => {
-    set((state) => ({
-      lessonContents: {
+    set((state) => {
+      const newContents = {
         ...state.lessonContents,
         [lessonId]: content,
-      },
-    }));
+      };
+      // 持久化到 localStorage
+      saveToStorage(STORAGE_KEYS.LESSON_CONTENTS, newContents);
+      return { lessonContents: newContents };
+    });
   },
 
-  setExercises: (exercises) => set({ exercises }),
+  setExercises: (exercises) => {
+    // 持久化到 localStorage
+    saveToStorage(STORAGE_KEYS.EXERCISES, exercises);
+    set({ exercises });
+  },
 
   submitExerciseAnswer: (exerciseId, answer) => {
-    set((state) => ({
-      exercises: state.exercises.map((ex) =>
+    set((state) => {
+      const newExercises = state.exercises.map((ex) =>
         ex.id === exerciseId
           ? {
               ...ex,
@@ -187,7 +220,10 @@ export const useCourseStore = create<CourseStore>((set, get) => ({
               isCorrect: answer === ex.correctAnswer,
             }
           : ex
-      ),
-    }));
+      );
+      // 持久化到 localStorage
+      saveToStorage(STORAGE_KEYS.EXERCISES, newExercises);
+      return { exercises: newExercises };
+    });
   },
 }));

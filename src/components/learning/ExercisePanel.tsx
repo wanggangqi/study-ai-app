@@ -21,6 +21,7 @@ export const ExercisePanel: React.FC<ExercisePanelProps> = ({
 }) => {
   const { exercises, setExercises, submitExerciseAnswer, updateLessonStatus } = useCourseStore();
   const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [currentAnswers, setCurrentAnswers] = useState<Record<string, string>>({});
   const [showResults, setShowResults] = useState(false);
@@ -86,6 +87,11 @@ export const ExercisePanel: React.FC<ExercisePanelProps> = ({
 
   // 提交答案
   const handleSubmitAnswers = useCallback(() => {
+    // 防止重复提交
+    if (isSubmitting) return;
+
+    setIsSubmitting(true);
+
     // 遍历所有练习题，提交答案
     lessonExercises.forEach((exercise) => {
       const answer = currentAnswers[exercise.id];
@@ -106,7 +112,9 @@ export const ExercisePanel: React.FC<ExercisePanelProps> = ({
     if (accuracy >= 60) {
       updateLessonStatus(lessonId, 'completed');
     }
-  }, [lessonExercises, currentAnswers, submitExerciseAnswer, lessonId, updateLessonStatus]);
+
+    setIsSubmitting(false);
+  }, [lessonExercises, currentAnswers, submitExerciseAnswer, lessonId, updateLessonStatus, isSubmitting]);
 
   // 判断是否为选择题（有选项）或填空题
   const isChoiceExercise = (exercise: Exercise): boolean => {
@@ -245,9 +253,9 @@ export const ExercisePanel: React.FC<ExercisePanelProps> = ({
                 variant="primary"
                 size="sm"
                 onClick={handleSubmitAnswers}
-                disabled={Object.keys(currentAnswers).length < totalCount}
+                disabled={isSubmitting || Object.keys(currentAnswers).length < totalCount}
               >
-                提交答案
+                {isSubmitting ? '提交中...' : '提交答案'}
               </Button>
             </div>
           )}
