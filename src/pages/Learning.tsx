@@ -32,10 +32,15 @@ export const LearningPage: React.FC = () => {
     ? lessonContents[currentLesson.id]
     : null;
 
-  // 计算当前课时的上下文信息（用于上一课/下一课导航）
-  const { prevLesson, nextLesson } = useMemo(() => {
+  // 计算所有导航信息（上一课/下一课、当前章节索引、课时在章节内的索引）
+  const navigationInfo = useMemo(() => {
     if (!currentCourse?.chapters) {
-      return { prevLesson: null, nextLesson: null };
+      return {
+        prevLesson: null,
+        nextLesson: null,
+        currentChapterIndex: -1,
+        currentLessonIndexInChapter: -1,
+      };
     }
 
     const allLessons: { lesson: Lesson; chapter: ChapterWithLessons }[] = [];
@@ -52,15 +57,36 @@ export const LearningPage: React.FC = () => {
       (item) => item.lesson.id === currentLesson?.id
     );
 
+    // 计算当前章节索引和课时在章节内的索引
+    let currentChapterIndex = -1;
+    let currentLessonIndexInChapter = -1;
+
+    if (currentLesson) {
+      for (let i = 0; i < currentCourse.chapters.length; i++) {
+        const chapter = currentCourse.chapters[i];
+        const lessonIdx = chapter.lessons?.findIndex(
+          (l) => l.id === currentLesson.id
+        ) ?? -1;
+        if (lessonIdx !== -1) {
+          currentChapterIndex = i;
+          currentLessonIndexInChapter = lessonIdx;
+          break;
+        }
+      }
+    }
+
     return {
-      prevLesson:
-        currentIndex > 0 ? allLessons[currentIndex - 1] : null,
+      prevLesson: currentIndex > 0 ? allLessons[currentIndex - 1] : null,
       nextLesson:
         currentIndex < allLessons.length - 1
           ? allLessons[currentIndex + 1]
           : null,
+      currentChapterIndex,
+      currentLessonIndexInChapter,
     };
   }, [currentCourse, currentLesson]);
+
+  const { prevLesson, nextLesson, currentChapterIndex, currentLessonIndexInChapter } = navigationInfo;
 
   // 加载课时
   const handleSelectLesson = useCallback(
@@ -74,12 +100,17 @@ export const LearningPage: React.FC = () => {
       selectChapter(chapter);
       selectLesson(lesson);
 
+      // 从 currentCourse.chapters 中查找当前 lesson 的最新状态
+      const latestLesson = currentCourse?.chapters
+        ?.flatMap((c) => c.lessons || [])
+        .find((l) => l.id === lesson.id);
+
       // 如果课时状态是 not_started，设置为 in_progress
-      if (lesson.status === 'not_started') {
+      if (latestLesson?.status === 'not_started') {
         updateLessonStatus(lesson.id, 'in_progress');
       }
     },
-    [currentLesson, selectChapter, selectLesson, updateLessonStatus]
+    [currentCourse, currentLesson, selectChapter, selectLesson, updateLessonStatus]
   );
 
   // 标记当前课时完成
@@ -102,34 +133,6 @@ export const LearningPage: React.FC = () => {
       handleSelectLesson(nextLesson.lesson, nextLesson.chapter);
     }
   }, [nextLesson, handleSelectLesson]);
-
-  // 计算当前章节索引和课时在章节内的索引
-  const { currentChapterIndex, currentLessonIndexInChapter } = useMemo(() => {
-    if (!currentCourse?.chapters || !currentLesson) {
-      return { currentChapterIndex: -1, currentLessonIndexInChapter: -1 };
-    }
-
-    for (
-      let chapterIdx = 0;
-      chapterIdx < currentCourse.chapters.length;
-      chapterIdx++
-    ) {
-      const chapter = currentCourse.chapters[chapterIdx];
-      if (chapter.lessons) {
-        const lessonIdx = chapter.lessons.findIndex(
-          (l: Lesson) => l.id === currentLesson.id
-        );
-        if (lessonIdx !== -1) {
-          return {
-            currentChapterIndex: chapterIdx,
-            currentLessonIndexInChapter: lessonIdx,
-          };
-        }
-      }
-    }
-
-    return { currentChapterIndex: -1, currentLessonIndexInChapter: -1 };
-  }, [currentCourse, currentLesson]);
 
   React.useEffect(() => {
     if (courseId) {
@@ -301,16 +304,6 @@ export const LearningPage: React.FC = () => {
                         {currentLesson.status === 'completed'
                           ? '✓ 已完成'
                           : '标记完成'}
-                      </Button>
-                    </div>
-
-                    {/* 右侧：AI 按钮 */}
-                    <div className="flex gap-2">
-                      <Button variant="outline" size="sm">
-                        生成练习题
-                      </Button>
-                      <Button variant="outline" size="sm">
-                        向老师提问
                       </Button>
                     </div>
                   </div>
