@@ -4,6 +4,7 @@ import { Card } from '../components/common/Card';
 import { Button } from '../components/common/Button';
 import { Sidebar } from '../components/common/Sidebar';
 import { TeacherAgent } from '../components/teacher/TeacherAgent';
+import { CoursewareViewer } from '../components/learning/CoursewareViewer';
 import { useCourseStore } from '../stores/courseStore';
 import type { Lesson, ChapterWithLessons } from '../types';
 
@@ -256,18 +257,10 @@ export const LearningPage: React.FC = () => {
               <>
                 {/* 课件内容区 */}
                 <div className="flex-1 overflow-y-auto p-6">
-                  {currentLessonContent ? (
-                    <div
-                      className="prose max-w-none"
-                      dangerouslySetInnerHTML={{ __html: currentLessonContent }}
-                    />
-                  ) : (
-                    <div className="flex flex-col items-center justify-center h-full text-text-muted">
-                      <div className="text-6xl mb-4">📖</div>
-                      <p className="text-lg mb-2">正在加载课件...</p>
-                      <p className="text-sm">课件内容将通过 AI 自动生成</p>
-                    </div>
-                  )}
+                  <CoursewareViewer
+                    lessonId={currentLesson.id}
+                    content={currentLessonContent}
+                  />
                 </div>
 
                 {/* 底部操作区 */}
