@@ -1,201 +1,215 @@
 import { useState, useCallback } from 'react';
-import { invoke } from '@tauri-apps/api/core';
-import { useConfigStore } from '../../stores/configStore';
-import { CoursePlan } from '../../types';
+import { useConsultant } from '../../hooks/useConsultant';
+import type { CoursePlanOutline } from '../../types';
 import './ConsultantAgent.css';
 
 interface ConsultantAgentProps {
-  onCoursePlanGenerated?: (plan: CoursePlan) => void;
+  onCoursePlanGenerated?: (plan: CoursePlanOutline) => void;
 }
 
-// 咨询问题配置
-const CONSULT_QUESTIONS: Array<{
-  id: string;
-  question: string;
-  description: string;
-  placeholder?: string;
-  options?: string[];
-  styleOptions?: Array<{ id: string; description: string }>;
-}> = [
-  {
-    id: 'goal',
+// 7步流程步骤定义
+const STEPS = ['welcome', 'goal', 'level', 'duration', 'style', 'base', 'confirm'] as const;
+type StepType = typeof STEPS[number];
+
+// 步骤配置
+const STEP_CONFIG: Record<StepType, { question?: string; description?: string; placeholder?: string; options?: string[] }> = {
+  welcome: {
+    description: '让我来帮您制定一个专属的学习计划',
+  },
+  goal: {
     question: '您想学习什么内容？',
     description: '例如：Python 编程、机器学习、英语口语、设计模式...',
     placeholder: '请描述您想学习的内容...',
   },
-  {
-    id: 'level',
+  level: {
     question: '您目前的基础水平是？',
     description: '这有助于我为您定制合适的学习路径',
     options: ['零基础', '入门', '初级', '中级', '高级'],
   },
-  {
-    id: 'duration',
+  duration: {
     question: '您希望多长时间完成学习？',
     description: '根据目标设定合理的学习周期',
     options: ['1 周内', '1 个月内', '3 个月内', '半年内', '不着急'],
   },
-  {
-    id: 'style',
+  style: {
     question: '您喜欢什么样的教学风格？',
     description: '选择您最喜欢的教学风格',
-    styleOptions: [
-      { id: '幽默风趣', description: '轻松愉快，寓教于乐' },
-      { id: '严谨专业', description: '系统完整，逻辑清晰' },
-      { id: '实战为主', description: '边做边学，注重实践' },
-      { id: '循序渐进', description: '由浅入深，稳扎稳打' },
-    ],
   },
-  {
-    id: 'base',
+  base: {
     question: '您有哪些相关基础？',
-    description: '请描述您已有的相关知识或经验',
+    description: '请描述您已有的相关知识或经验（选填）',
     placeholder: '例如：学过 HTML/CSS，了解变量和循环概念...',
   },
+  confirm: {
+    question: '请确认您的学习计划',
+    description: '以下是您提供的信息，如有需要可以点击修改',
+  },
+};
+
+// 6种教学风格
+const TEACHING_STYLES = [
+  { id: '幽默风趣', description: '轻松愉快，寓教于乐', icon: '😊' },
+  { id: '严谨专业', description: '系统完整，逻辑清晰', icon: '📚' },
+  { id: '实战为主', description: '边做边学，注重实践', icon: '💻' },
+  { id: '循序渐进', description: '由浅入深，稳扎稳打', icon: '📈' },
+  { id: '启发式', description: '引导思考，培养能力', icon: '💡' },
+  { id: '耐心细致', description: '讲解详细，不懂就问', icon: '🤝' },
 ];
 
 export function ConsultantAgent({ onCoursePlanGenerated }: ConsultantAgentProps) {
   const [currentStep, setCurrentStep] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [coursePlan, setCoursePlan] = useState<CoursePlan | null>(null);
+  const [coursePlan, setCoursePlan] = useState<CoursePlanOutline | null>(null);
 
-  const config = useConfigStore();
-  const currentQuestion = CONSULT_QUESTIONS[currentStep];
+  const { isLoading, error, generateCoursePlan } = useConsultant();
 
-  const handleAnswer = useCallback((answer: string) => {
-    setAnswers((prev) => ({ ...prev, [currentQuestion.id]: answer }));
-    setError(null);
-  }, [currentQuestion.id]);
+  const currentStepType = STEPS[currentStep];
+  const stepConfig = STEP_CONFIG[currentStepType];
+
+  const handleAnswer = useCallback((stepId: string, answer: string) => {
+    setAnswers((prev) => ({ ...prev, [stepId]: answer }));
+  }, []);
 
   const handleNext = useCallback(async () => {
-    if (!answers[currentQuestion.id]) {
-      setError('请选择一个答案');
-      return;
-    }
-
-    if (currentStep < CONSULT_QUESTIONS.length - 1) {
-      setCurrentStep((prev) => prev + 1);
-    } else {
+    if (currentStepType === 'confirm') {
       // 最后一步，生成课程计划
-      await generateCoursePlan();
+      const result = await generateCoursePlan(answers);
+      if (result) {
+        setCoursePlan(result);
+        onCoursePlanGenerated?.(result);
+      }
+    } else if (currentStep < STEPS.length - 1) {
+      setCurrentStep((prev) => prev + 1);
     }
-  }, [currentStep, currentQuestion.id, answers]);
+  }, [currentStep, currentStepType, answers, generateCoursePlan, onCoursePlanGenerated]);
 
   const handleBack = useCallback(() => {
     if (currentStep > 0) {
       setCurrentStep((prev) => prev - 1);
-      setError(null);
     }
   }, [currentStep]);
 
-  const generateCoursePlan = async () => {
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const systemPrompt = `你是一位专业的学习咨询师，擅长根据用户的需求制定个性化的课程计划。
-请根据用户的信息，生成一个结构化的课程计划 JSON。
-课程计划应包含：
-- name: 课程名称
-- targetLevel: 目标水平
-- duration: 学习时长
-- teachingStyle: 教学风格
-- baseKnowledge: 基础知识要求
-
-请只返回 JSON 格式，不要包含其他文字。`;
-
-      const userPrompt = `用户信息：
-- 学习目标：${answers.goal}
-- 现有水平：${answers.level}
-- 期望时长：${answers.duration}
-- 教学风格：${answers.style}
-- 已有基础：${answers.base || '无'}
-
-请生成课程计划 JSON。`;
-
-      const result = await invoke<{ success: boolean; data?: string; error?: string }>(
-        'ai_chat_command',
-        {
-          params: {
-            provider: config.aiProvider,
-            api_key: config.aiApiKey,
-            model: config.aiModel || null,
-            messages: [
-              { role: 'system', content: systemPrompt },
-              { role: 'user', content: userPrompt },
-            ],
-          },
-        }
-      );
-
-      if (result.success && result.data) {
-        const plan = JSON.parse(result.data) as CoursePlan;
-        setCoursePlan(plan);
-        onCoursePlanGenerated?.(plan);
-      } else {
-        setError(result.error || '生成课程计划失败');
-      }
-    } catch (err) {
-      setError(String(err));
-    } finally {
-      setIsLoading(false);
+  const handleEditField = useCallback((field: string) => {
+    const fieldIndex = STEPS.indexOf(field as StepType);
+    if (fieldIndex !== -1) {
+      setCurrentStep(fieldIndex);
     }
-  };
+  }, []);
 
   const handleRestart = () => {
     setCurrentStep(0);
     setAnswers({});
     setCoursePlan(null);
-    setError(null);
   };
 
-  const renderQuestion = () => {
-    if (currentQuestion.id === 'style' && currentQuestion.styleOptions) {
-      return (
-        <div className="style-options">
-          {currentQuestion.styleOptions.map((style) => (
-            <button
-              key={style.id}
-              className={`style-option ${answers[currentQuestion.id] === style.id ? 'selected' : ''}`}
-              onClick={() => handleAnswer(style.id)}
-            >
-              <span className="style-name">{style.id}</span>
-              <span className="style-desc">{style.description}</span>
-            </button>
-          ))}
-        </div>
-      );
-    }
-
-    if (currentQuestion.options) {
-      return (
-        <div className="option-grid">
-          {currentQuestion.options.map((option) => (
-            <button
-              key={option}
-              className={`option-btn ${answers[currentQuestion.id] === option ? 'selected' : ''}`}
-              onClick={() => handleAnswer(option)}
-            >
-              {option}
-            </button>
-          ))}
-        </div>
-      );
-    }
-
-    return (
-      <textarea
-        className="answer-textarea"
-        placeholder={currentQuestion.placeholder}
-        value={answers[currentQuestion.id] || ''}
-        onChange={(e) => handleAnswer(e.target.value)}
-      />
-    );
+  const canProceed = () => {
+    if (currentStepType === 'welcome') return true;
+    if (currentStepType === 'base') return true; // base is optional
+    if (currentStepType === 'confirm') return true;
+    return !!answers[currentStepType];
   };
 
-  if (coursePlan) {
+  // 渲染欢迎步骤
+  const renderWelcome = () => (
+    <div className="welcome-step">
+      <div className="welcome-icon">🎓</div>
+      <h2 className="welcome-title">欢迎来到智学伴侣</h2>
+      <p className="welcome-desc">{stepConfig.description}</p>
+      <div className="welcome-features">
+        <div className="feature-item">
+          <span className="feature-icon">📝</span>
+          <span className="feature-text">个性化学习计划</span>
+        </div>
+        <div className="feature-item">
+          <span className="feature-icon">🎯</span>
+          <span className="feature-text">AI 一对一教学</span>
+        </div>
+        <div className="feature-item">
+          <span className="feature-icon">📚</span>
+          <span className="feature-text">互动式课件</span>
+        </div>
+      </div>
+    </div>
+  );
+
+  // 渲染选项步骤
+  const renderOptions = (options: string[]) => (
+    <div className="option-grid">
+      {options.map((option) => (
+        <button
+          key={option}
+          className={`option-btn ${answers[currentStepType] === option ? 'selected' : ''}`}
+          onClick={() => handleAnswer(currentStepType, option)}
+        >
+          {option}
+        </button>
+      ))}
+    </div>
+  );
+
+  // 渲染文本输入步骤
+  const renderTextInput = () => (
+    <textarea
+      className="answer-textarea"
+      placeholder={stepConfig.placeholder}
+      value={answers[currentStepType] || ''}
+      onChange={(e) => handleAnswer(currentStepType, e.target.value)}
+    />
+  );
+
+  // 渲染风格选择步骤
+  const renderStyleOptions = () => (
+    <div className="style-cards">
+      {TEACHING_STYLES.map((style) => (
+        <button
+          key={style.id}
+          className={`style-card ${answers[currentStepType] === style.id ? 'selected' : ''}`}
+          onClick={() => handleAnswer(currentStepType, style.id)}
+        >
+          <span className="style-card-icon">{style.icon}</span>
+          <span className="style-card-name">{style.id}</span>
+          <span className="style-card-desc">{style.description}</span>
+        </button>
+      ))}
+    </div>
+  );
+
+  // 渲染确认步骤
+  const renderConfirm = () => (
+    <div className="confirm-step">
+      <div className="confirm-summary">
+        <div className="summary-item" onClick={() => handleEditField('goal')}>
+          <div className="summary-label">学习内容</div>
+          <div className="summary-value">{answers.goal || '-'}</div>
+          <button className="edit-btn">修改</button>
+        </div>
+        <div className="summary-item" onClick={() => handleEditField('level')}>
+          <div className="summary-label">基础水平</div>
+          <div className="summary-value">{answers.level || '-'}</div>
+          <button className="edit-btn">修改</button>
+        </div>
+        <div className="summary-item" onClick={() => handleEditField('duration')}>
+          <div className="summary-label">学习时长</div>
+          <div className="summary-value">{answers.duration || '-'}</div>
+          <button className="edit-btn">修改</button>
+        </div>
+        <div className="summary-item" onClick={() => handleEditField('style')}>
+          <div className="summary-label">教学风格</div>
+          <div className="summary-value">{answers.style || '-'}</div>
+          <button className="edit-btn">修改</button>
+        </div>
+        <div className="summary-item" onClick={() => handleEditField('base')}>
+          <div className="summary-label">相关基础</div>
+          <div className="summary-value">{answers.base || '无'}</div>
+          <button className="edit-btn">修改</button>
+        </div>
+      </div>
+    </div>
+  );
+
+  // 渲染课程计划结果
+  const renderCoursePlanResult = () => {
+    const plan = coursePlan as CoursePlanOutline;
     return (
       <div className="consultant-agent course-plan-result">
         <div className="result-header">
@@ -206,20 +220,26 @@ export function ConsultantAgent({ onCoursePlanGenerated }: ConsultantAgentProps)
         <div className="plan-card">
           <div className="plan-item">
             <span className="plan-label">课程名称</span>
-            <span className="plan-value">{coursePlan.name}</span>
+            <span className="plan-value">{plan.courseName}</span>
           </div>
           <div className="plan-item">
             <span className="plan-label">目标水平</span>
-            <span className="plan-value">{coursePlan.targetLevel}</span>
+            <span className="plan-value">{plan.targetLevel}</span>
           </div>
           <div className="plan-item">
             <span className="plan-label">学习时长</span>
-            <span className="plan-value">{coursePlan.duration}</span>
+            <span className="plan-value">{plan.duration}</span>
           </div>
           <div className="plan-item">
             <span className="plan-label">教学风格</span>
-            <span className="plan-value">{coursePlan.teachingStyle}</span>
+            <span className="plan-value">{plan.teachingStyle}</span>
           </div>
+          {'chapters' in plan && plan.chapters && (
+            <div className="plan-item">
+              <span className="plan-label">章节数量</span>
+              <span className="plan-value">{plan.chapters.length} 章</span>
+            </div>
+          )}
         </div>
 
         <div className="result-actions">
@@ -230,6 +250,30 @@ export function ConsultantAgent({ onCoursePlanGenerated }: ConsultantAgentProps)
         </div>
       </div>
     );
+  };
+
+  // 渲染当前步骤内容
+  const renderStepContent = () => {
+    switch (currentStepType) {
+      case 'welcome':
+        return renderWelcome();
+      case 'goal':
+      case 'base':
+        return renderTextInput();
+      case 'level':
+      case 'duration':
+        return renderOptions(stepConfig.options || []);
+      case 'style':
+        return renderStyleOptions();
+      case 'confirm':
+        return renderConfirm();
+      default:
+        return null;
+    }
+  };
+
+  if (coursePlan) {
+    return renderCoursePlanResult();
   }
 
   return (
@@ -237,25 +281,39 @@ export function ConsultantAgent({ onCoursePlanGenerated }: ConsultantAgentProps)
       <div className="progress-bar">
         <div
           className="progress-fill"
-          style={{ width: `${((currentStep + 1) / CONSULT_QUESTIONS.length) * 100}%` }}
+          style={{ width: `${((currentStep + 1) / STEPS.length) * 100}%` }}
         />
       </div>
 
       <div className="step-indicator">
-        {currentStep + 1} / {CONSULT_QUESTIONS.length}
+        {currentStepType !== 'welcome' && currentStepType !== 'confirm'
+          ? `${currentStep} / ${STEPS.length - 2}`
+          : currentStepType === 'welcome'
+          ? '开始'
+          : '确认'}
       </div>
 
       <div className="question-section">
-        <h2 className="question-text">{currentQuestion.question}</h2>
-        <p className="question-desc">{currentQuestion.description}</p>
+        {currentStepType !== 'welcome' && currentStepType !== 'confirm' && (
+          <>
+            <h2 className="question-text">{stepConfig.question}</h2>
+            <p className="question-desc">{stepConfig.description}</p>
+          </>
+        )}
+        {currentStepType === 'confirm' && (
+          <>
+            <h2 className="question-text">{stepConfig.question}</h2>
+            <p className="question-desc">{stepConfig.description}</p>
+          </>
+        )}
 
-        {renderQuestion()}
+        {renderStepContent()}
 
         {error && <div className="error-message">{error}</div>}
       </div>
 
       <div className="navigation-buttons">
-        {currentStep > 0 && (
+        {currentStep > 0 && currentStepType !== 'confirm' && (
           <button className="btn-secondary" onClick={handleBack}>
             上一步
           </button>
@@ -263,9 +321,15 @@ export function ConsultantAgent({ onCoursePlanGenerated }: ConsultantAgentProps)
         <button
           className="btn-primary"
           onClick={handleNext}
-          disabled={isLoading || !answers[currentQuestion.id]}
+          disabled={isLoading || !canProceed()}
         >
-          {isLoading ? '生成中...' : currentStep === CONSULT_QUESTIONS.length - 1 ? '生成课程计划' : '下一步'}
+          {isLoading
+            ? '生成中...'
+            : currentStepType === 'welcome'
+            ? '开始制定计划'
+            : currentStepType === 'confirm'
+            ? '生成课程计划'
+            : '下一步'}
         </button>
       </div>
     </div>

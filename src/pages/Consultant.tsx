@@ -5,7 +5,7 @@ import { Card } from '../components/common/Card';
 import { Button } from '../components/common/Button';
 import { message } from '@tauri-apps/plugin-dialog';
 import { ConsultantAgent } from '../components/consultant';
-import { CoursePlan } from '../types';
+import { CoursePlanOutline } from '../types';
 import { tauriService } from '../services/tauri';
 
 const navItems = [
@@ -16,9 +16,9 @@ const navItems = [
 
 export const ConsultantPage: React.FC = () => {
   const navigate = useNavigate();
-  const [coursePlan, setCoursePlan] = useState<CoursePlan | null>(null);
+  const [coursePlan, setCoursePlan] = useState<CoursePlanOutline | null>(null);
 
-  const handleCoursePlanGenerated = (plan: CoursePlan) => {
+  const handleCoursePlanGenerated = (plan: CoursePlanOutline) => {
     setCoursePlan(plan);
   };
 
@@ -28,7 +28,7 @@ export const ConsultantPage: React.FC = () => {
     try {
       // 保存课程到数据库
       const courseData = {
-        name: coursePlan.name,
+        name: coursePlan.courseName,
         targetLevel: coursePlan.targetLevel,
         duration: coursePlan.duration,
         teachingStyle: coursePlan.teachingStyle,
@@ -48,20 +48,20 @@ export const ConsultantPage: React.FC = () => {
         try {
           const syncResult = await tauriService.createCourseRepository(result.id);
           if (syncResult.success) {
-            await message(`课程"${coursePlan.name}"创建成功！\n仓库地址：${syncResult.repoUrl}`, {
+            await message(`课程"${coursePlan.courseName}"创建成功！\n仓库地址：${syncResult.repoUrl}`, {
               title: '课程创建成功',
               kind: 'info',
             });
           } else {
             console.warn('码云同步失败:', syncResult.message);
-            await message(`课程"${coursePlan.name}"创建成功，但码云同步失败。\n您可以稍后在设置中手动同步。`, {
+            await message(`课程"${coursePlan.courseName}"创建成功，但码云同步失败。\n您可以稍后在设置中手动同步。`, {
               title: '课程创建成功',
               kind: 'warning',
             });
           }
         } catch (syncError) {
           console.error('码云同步失败:', syncError);
-          await message(`课程"${coursePlan.name}"创建成功，但码云同步失败。\n您可以稍后在设置中手动同步。`, {
+          await message(`课程"${coursePlan.courseName}"创建成功，但码云同步失败。\n您可以稍后在设置中手动同步。`, {
             title: '课程创建成功',
             kind: 'warning',
           });
@@ -97,7 +97,7 @@ export const ConsultantPage: React.FC = () => {
             <div className="space-y-4 mb-6">
               <div className="flex justify-between items-center py-2 border-b">
                 <span className="text-text-secondary">课程名称</span>
-                <span className="font-medium">{coursePlan.name}</span>
+                <span className="font-medium">{coursePlan.courseName}</span>
               </div>
               <div className="flex justify-between items-center py-2 border-b">
                 <span className="text-text-secondary">目标水平</span>
