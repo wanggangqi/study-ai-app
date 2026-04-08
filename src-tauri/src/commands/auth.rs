@@ -6,8 +6,7 @@ use serde::{Deserialize, Serialize};
 use crate::services::{
     machine_id::{get_machine_id, get_machine_hash},
     license::{validate_license, get_license_status, LicenseError,
-        is_admin_password_set, set_admin_password, verify_admin_password, change_admin_password,
-        get_signing_key, set_signing_key},
+        get_signing_key},
     crypto::{generate_keypair, signing_key_to_base64, verify_key_to_base64},
 };
 
@@ -133,30 +132,6 @@ pub fn get_license_status_command() -> Result<LicenseResult, String> {
             error_message: Some(format!("获取授权状态失败：{}", e)),
         }),
     }
-}
-
-/// 检查是否已设置管理员密码
-#[tauri::command]
-pub fn is_admin_password_set_command() -> Result<bool, String> {
-    Ok(is_admin_password_set())
-}
-
-/// 设置管理员密码（首次设置）
-#[tauri::command]
-pub fn set_admin_password_command(password: String) -> Result<(), String> {
-    set_admin_password(&password).map_err(|e| e.to_string())
-}
-
-/// 验证管理员密码
-#[tauri::command]
-pub fn verify_admin_password_command(password: String) -> Result<bool, String> {
-    verify_admin_password(&password).map_err(|e| e.to_string())
-}
-
-/// 修改管理员密码
-#[tauri::command]
-pub fn change_admin_password_command(old_password: String, new_password: String) -> Result<(), String> {
-    change_admin_password(&old_password, &new_password).map_err(|e| e.to_string())
 }
 
 /// 签名密钥信息

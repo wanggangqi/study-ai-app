@@ -20,7 +20,6 @@ pub use crypto::{
 pub use default_keys::{get_default_signing_key, get_default_verify_key};
 pub use license::{
     validate_license, get_license_status, LicenseStatus, LicenseError,
-    is_admin_password_set, set_admin_password, verify_admin_password, change_admin_password,
     get_signing_key,
 };
 pub use config::{AppConfig, load_config, save_config, update_config, ConfigError};

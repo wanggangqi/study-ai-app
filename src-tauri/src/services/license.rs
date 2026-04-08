@@ -4,13 +4,13 @@
 
 use chrono::{Utc, NaiveDate};
 use serde::{Deserialize, Serialize};
-use sha2::{Sha256, Digest};
 use std::fs;
 use std::path::PathBuf;
 use thiserror::Error;
 
 use super::crypto::{decrypt_data, encrypt_data, sign_data, verify_signature as crypto_verify_signature,
-    signing_key_from_base64, signing_key_to_base64, verify_key_from_base64};
+    signing_key_from_base64, signing_key_to_base64};
+use super::default_keys;
 use super::machine_id::{get_machine_hash, MachineIdError};
 
 #[derive(Error, Debug)]
@@ -89,51 +89,59 @@ fn get_key_file_path() -> PathBuf {
     app_dir.join("key.dat")
 }
 
-/// 获取签名密钥文件路径
-fn get_signing_key_file_path() -> PathBuf {
-    let app_dir = dirs::data_local_dir()
-        .unwrap_or_else(|| PathBuf::from("."))
-        .join("StudyMate");
-
-    if !app_dir.exists() {
-        fs::create_dir_all(&app_dir).ok();
-    }
-
-    app_dir.join("signing_key.blob")
+/// 获取 localData 目录路径
+fn get_local_data_dir() -> std::path::PathBuf {
+    std::env::var("LOCALAPPDATA")
+        .map(|p| std::path::Path::new(&p).join("com.studymate.app").join("localData"))
+        .unwrap_or_else(|_| {
+            dirs::data_local_dir()
+                .unwrap_or_else(|| std::path::PathBuf::from("."))
+                .join("StudyMate")
+        })
 }
 
 /// 获取当前有效的验签公钥
 fn get_verify_key() -> Result<super::crypto::VerifyingKey, LicenseError> {
-    let key_file = get_signing_key_file_path();
-    if !key_file.exists() {
-        return Err(LicenseError::NotFound);
-    }
-
-    let signing_key_base64 = fs::read_to_string(&key_file)
-        .map_err(|e| LicenseError::ReadError(e.to_string()))?;
-    let signing_key = signing_key_from_base64(signing_key_base64.trim())
-        .map_err(|_| LicenseError::InvalidFormat)?;
-    Ok(signing_key.verifying_key())
+    default_keys::get_default_verify_key()
+        .map_err(|_| LicenseError::NotFound)
 }
 
-/// 获取当前有效的签名私钥
+/// 获取当前有效的签名私钥（从 localData 目录或项目根目录）
 pub fn get_signing_key() -> Result<Option<super::crypto::SigningKey>, LicenseError> {
-    let key_file = get_signing_key_file_path();
-    if !key_file.exists() {
-        return Ok(None);
+    // 优先检查 localData 目录
+    let local_data_key = get_local_data_dir().join("signing_key.pem");
+    if local_data_key.exists() {
+        let content = fs::read_to_string(&local_data_key)
+            .map_err(|e| LicenseError::ReadError(e.to_string()))?;
+        let key = signing_key_from_base64(content.trim())
+            .map_err(|_| LicenseError::InvalidFormat)?;
+        return Ok(Some(key));
     }
 
-    let signing_key_base64 = fs::read_to_string(&key_file)
-        .map_err(|e| LicenseError::ReadError(e.to_string()))?;
-    let signing_key = signing_key_from_base64(signing_key_base64.trim())
-        .map_err(|_| LicenseError::InvalidFormat)?;
-    Ok(Some(signing_key))
+    // 检查项目根目录（仅开发时使用）
+    let project_key = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("signing_key.pem");
+    if project_key.exists() {
+        let content = fs::read_to_string(&project_key)
+            .map_err(|e| LicenseError::ReadError(e.to_string()))?;
+        let key = signing_key_from_base64(content.trim())
+            .map_err(|_| LicenseError::InvalidFormat)?;
+        return Ok(Some(key));
+    }
+
+    Ok(None)
 }
 
-/// 设置签名私钥（仅首次设置）
+/// 设置签名私钥（保存到 localData 目录）
 pub fn set_signing_key(signing_key_base64: &str) -> Result<(), LicenseError> {
-    let key_file = get_signing_key_file_path();
+    let local_data_dir = get_local_data_dir();
+    if !local_data_dir.exists() {
+        fs::create_dir_all(&local_data_dir)
+            .map_err(|e| LicenseError::WriteError(e.to_string()))?;
+    }
 
+    let key_file = local_data_dir.join("signing_key.pem");
+
+    // 如果已存在，不覆盖
     if key_file.exists() {
         return Err(LicenseError::WriteError("签名密钥已设置，无法重复设置".to_string()));
     }
@@ -151,7 +159,14 @@ pub fn set_signing_key(signing_key_base64: &str) -> Result<(), LicenseError> {
 
 /// 检查签名密钥是否已设置
 pub fn is_signing_key_set() -> bool {
-    get_signing_key_file_path().exists()
+    let local_data_key = get_local_data_dir().join("signing_key.pem");
+    if local_data_key.exists() {
+        return true;
+    }
+
+    // 也检查项目根目录（仅开发时使用）
+    let project_key = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("signing_key.pem");
+    project_key.exists()
 }
 
 /// 验证密钥格式并验签
@@ -226,84 +241,6 @@ fn save_license_status(license_data: &LicenseData) -> Result<(), LicenseError> {
     let key_encrypted = encrypt_data(license_data.machine_hash.as_bytes(), &fixed_key)
         .map_err(|e| LicenseError::WriteError(e.to_string()))?;
     fs::write(&key_file, key_encrypted)
-        .map_err(|e| LicenseError::WriteError(e.to_string()))?;
-
-    Ok(())
-}
-
-/// 默认管理员密码（首次使用）
-/// 实际应用中应在首次设置后从配置文件读取
-const DEFAULT_ADMIN_PASSWORD: &str = "Admin@2026";
-
-/// 检查是否已设置管理员密码
-pub fn is_admin_password_set() -> bool {
-    get_admin_password_file_path().exists()
-}
-
-/// 获取管理员密码文件路径
-fn get_admin_password_file_path() -> PathBuf {
-    let app_dir = dirs::data_local_dir()
-        .unwrap_or_else(|| PathBuf::from("."))
-        .join("StudyMate");
-
-    if !app_dir.exists() {
-        fs::create_dir_all(&app_dir).ok();
-    }
-
-    app_dir.join("admin.pass")
-}
-
-/// 设置管理员密码（首次设置）
-pub fn set_admin_password(password: &str) -> Result<(), LicenseError> {
-    let file_path = get_admin_password_file_path();
-
-    if file_path.exists() {
-        return Err(LicenseError::WriteError("管理员密码已设置，无法重复设置".to_string()));
-    }
-
-    // 使用 SHA256 哈希存储密码
-    let mut hasher = Sha256::new();
-    hasher.update(password.as_bytes());
-    let hash = hex::encode(hasher.finalize());
-
-    fs::write(&file_path, hash)
-        .map_err(|e| LicenseError::WriteError(e.to_string()))?;
-
-    Ok(())
-}
-
-/// 验证管理员密码
-pub fn verify_admin_password(password: &str) -> Result<bool, LicenseError> {
-    let file_path = get_admin_password_file_path();
-
-    // 如果没有设置过密码，使用默认密码验证
-    if !file_path.exists() {
-        return Ok(password == DEFAULT_ADMIN_PASSWORD);
-    }
-
-    let stored_hash = fs::read_to_string(&file_path)
-        .map_err(|e| LicenseError::ReadError(e.to_string()))?;
-
-    let mut hasher = Sha256::new();
-    hasher.update(password.as_bytes());
-    let input_hash = hex::encode(hasher.finalize());
-
-    Ok(stored_hash.trim() == input_hash)
-}
-
-/// 修改管理员密码
-pub fn change_admin_password(old_password: &str, new_password: &str) -> Result<(), LicenseError> {
-    // 先验证旧密码
-    if !verify_admin_password(old_password)? {
-        return Err(LicenseError::InvalidSignature); // 用这个错误表示密码错误
-    }
-
-    // 使用新密码覆盖
-    let mut hasher = Sha256::new();
-    hasher.update(new_password.as_bytes());
-    let hash = hex::encode(hasher.finalize());
-
-    fs::write(get_admin_password_file_path(), hash)
         .map_err(|e| LicenseError::WriteError(e.to_string()))?;
 
     Ok(())
