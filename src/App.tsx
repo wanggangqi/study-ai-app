@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
+import { invoke } from '@tauri-apps/api/core';
 import { HomePage } from './pages/Home';
 import { ConsultantPage } from './pages/Consultant';
 import { SettingsPage } from './pages/Settings';
@@ -25,10 +26,18 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
 // 快捷键监听组件
 const AdminShortcutHandler: React.FC<{ onTrigger: () => void }> = ({ onTrigger }) => {
   useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
+    const handleKeyDown = async (event: KeyboardEvent) => {
       if (event.ctrlKey && event.shiftKey && event.key === 'G') {
         event.preventDefault();
-        onTrigger();
+        try {
+          // 检查是否有签名密钥，没有则不允许打开管理员面板
+          const hasSigningKey = await invoke<boolean>('is_signing_key_set_command');
+          if (hasSigningKey) {
+            onTrigger();
+          }
+        } catch (err) {
+          console.error('Failed to check signing key:', err);
+        }
       }
     };
 
