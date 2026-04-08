@@ -17,7 +17,7 @@ pub use crypto::{
     signing_key_to_base64, verify_key_to_base64,
     signing_key_from_base64, verify_key_from_base64,
 };
-pub use default_keys::{get_default_signing_key, get_default_verify_key};
+pub use default_keys::get_default_verify_key;
 pub use license::{
     validate_license, get_license_status, LicenseStatus, LicenseError,
     get_signing_key,

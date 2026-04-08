@@ -90,7 +90,7 @@ fn get_verify_key() -> Result<super::crypto::VerifyingKey, LicenseError> {
         .map_err(|_| LicenseError::NotFound)
 }
 
-/// 获取当前有效的签名私钥（从 localData 目录、项目根目录或内置默认密钥）
+/// 获取当前有效的签名私钥（从 localData 目录或项目根目录）
 pub fn get_signing_key() -> Result<Option<super::crypto::SigningKey>, LicenseError> {
     // 优先检查 localData 目录
     let local_data_key = get_local_data_dir().join("signing_key.pem");
@@ -102,7 +102,7 @@ pub fn get_signing_key() -> Result<Option<super::crypto::SigningKey>, LicenseErr
         return Ok(Some(key));
     }
 
-    // 检查项目根目录（仅开发时使用）
+    // 检查项目根目录（默认私钥文件）
     let project_key = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("signing_key.pem");
     if project_key.exists() {
         let content = fs::read_to_string(&project_key)
@@ -112,11 +112,7 @@ pub fn get_signing_key() -> Result<Option<super::crypto::SigningKey>, LicenseErr
         return Ok(Some(key));
     }
 
-    // 回退到内置默认密钥
-    match default_keys::get_default_signing_key() {
-        Ok(key) => Ok(Some(key)),
-        Err(_) => Ok(None),
-    }
+    Ok(None)
 }
 
 /// 设置签名私钥（保存到 localData 目录）
