@@ -51,9 +51,9 @@ const TEACHING_STYLES = [
   { id: '幽默风趣', description: '轻松愉快，寓教于乐', icon: '😊' },
   { id: '严谨专业', description: '系统完整，逻辑清晰', icon: '📚' },
   { id: '实战为主', description: '边做边学，注重实践', icon: '💻' },
-  { id: '循序渐进', description: '由浅入深，稳扎稳打', icon: '📈' },
+  { id: '循序渐进', description: '由浅入深，稳扎稳打', icon: '🎭' },
   { id: '启发式', description: '引导思考，培养能力', icon: '💡' },
-  { id: '耐心细致', description: '讲解详细，不懂就问', icon: '🤝' },
+  { id: '耐心细致', description: '讲解详细，不懂就问', icon: '⚡' },
 ];
 
 export function ConsultantAgent({ onCoursePlanGenerated }: ConsultantAgentProps) {
@@ -234,13 +234,35 @@ export function ConsultantAgent({ onCoursePlanGenerated }: ConsultantAgentProps)
             <span className="plan-label">教学风格</span>
             <span className="plan-value">{plan.teachingStyle}</span>
           </div>
-          {'chapters' in plan && plan.chapters && (
-            <div className="plan-item">
-              <span className="plan-label">章节数量</span>
-              <span className="plan-value">{plan.chapters.length} 章</span>
-            </div>
-          )}
         </div>
+
+        {'chapters' in plan && plan.chapters && plan.chapters.length > 0 && (
+          <div className="chapters-section">
+            <h3 className="chapters-title">课程大纲</h3>
+            <div className="chapters-list">
+              {plan.chapters.map((chapter, chapterIndex) => (
+                <div key={chapterIndex} className="chapter-item">
+                  <div className="chapter-header">
+                    <span className="chapter-number">第 {chapter.chapterIndex + 1} 章</span>
+                    <span className="chapter-name">{chapter.chapterName}</span>
+                  </div>
+                  {chapter.lessons && chapter.lessons.length > 0 && (
+                    <ul className="lessons-list">
+                      {chapter.lessons.map((lesson, lessonIndex) => (
+                        <li key={lessonIndex} className="lesson-item">
+                          <span className="lesson-name">{lesson.lessonName}</span>
+                          {lesson.duration && (
+                            <span className="lesson-duration">{lesson.duration}</span>
+                          )}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className="result-actions">
           <button className="btn-secondary" onClick={handleRestart}>
@@ -294,13 +316,7 @@ export function ConsultantAgent({ onCoursePlanGenerated }: ConsultantAgentProps)
       </div>
 
       <div className="question-section">
-        {currentStepType !== 'welcome' && currentStepType !== 'confirm' && (
-          <>
-            <h2 className="question-text">{stepConfig.question}</h2>
-            <p className="question-desc">{stepConfig.description}</p>
-          </>
-        )}
-        {currentStepType === 'confirm' && (
+        {currentStepType !== 'welcome' && (
           <>
             <h2 className="question-text">{stepConfig.question}</h2>
             <p className="question-desc">{stepConfig.description}</p>
