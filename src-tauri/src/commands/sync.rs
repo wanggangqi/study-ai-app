@@ -504,3 +504,62 @@ pub async fn create_course_repository_command(
         .await
         .map_err(|e| e.to_string())
 }
+
+// ==================== AI 课程大纲生成 ====================
+
+use serde::{Deserialize, Serialize};
+
+/// AI 生成课程大纲命令参数
+#[derive(Debug, Serialize, Deserialize)]
+pub struct AIGenerateCoursePlanParams {
+    pub provider: String,
+    pub api_key: String,
+    pub model: Option<String>,
+    pub course_name: String,
+    pub target_level: String,
+    pub duration: String,
+    pub teaching_style: String,
+    pub base_knowledge: String,
+}
+
+/// AI 生成课程大纲命令
+#[tauri::command]
+pub async fn ai_generate_course_plan_command(
+    params: AIGenerateCoursePlanParams,
+) -> Result<crate::services::ai::CoursePlanOutline, String> {
+    use crate::services::AIProvider;
+    use crate::services::AIConfig;
+    use crate::services::ai::generate_course_plan;
+
+    let provider = match params.provider.to_lowercase().as_str() {
+        "claude" => AIProvider::Claude,
+        "openai" => AIProvider::OpenAI,
+        "qwen" => AIProvider::Qwen,
+        "deepseek" => AIProvider::DeepSeek,
+        "glm" => AIProvider::Glm,
+        "minimax" => AIProvider::MiniMax,
+        "kimi" => AIProvider::Kimi,
+        _ => return Err(format!("不支持的 AI 服务商: {}", params.provider)),
+    };
+
+    let config = AIConfig::new(provider, params.api_key);
+    let config = if let Some(model) = params.model {
+        config.with_model(model)
+    } else {
+        config
+    };
+
+    let result = generate_course_plan(
+        &config,
+        &params.course_name,
+        &params.target_level,
+        &params.duration,
+        &params.teaching_style,
+        &params.base_knowledge,
+    ).await;
+
+    match result {
+        Ok(plan) => Ok(plan),
+        Err(e) => Err(e.to_string()),
+    }
+}

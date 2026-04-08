@@ -443,6 +443,99 @@ pub async fn verify_api_key(config: &AIConfig) -> Result<bool, AIError> {
     }
 }
 
+/// 生成课程计划大纲
+pub async fn generate_course_plan(
+    config: &AIConfig,
+    course_name: &str,
+    target_level: &str,
+    duration: &str,
+    teaching_style: &str,
+    base_knowledge: &str,
+) -> Result<CoursePlanOutline, AIError> {
+    let system_prompt = format!(
+        r#"你是一位专业的课程规划教师，擅长以「{}」风格设计课程大纲。
+请根据用户提供的课程信息，生成一个结构化的课程计划大纲。
+返回 JSON 格式结果，结构如下：
+{{
+  "course_name": "课程名称",
+  "target_level": "目标水平",
+  "duration": "总时长",
+  "teaching_style": "教学风格",
+  "chapters": [
+    {{
+      "chapter_index": 1,
+      "chapter_name": "章节名称",
+      "lessons": [
+        {{
+          "lesson_index": 1,
+          "lesson_name": "课时名称",
+          "duration": "课时时长"
+        }}
+      ]
+    }}
+  ]
+}}
+
+要求：
+- 章节数量建议 3-6 章，每章 2-5 课时
+- 课时时长建议 20-45 分钟
+- 课程内容要由浅入深，循序渐进
+- 结合用户的基础知识水平合理安排内容深度
+- JSON 必须严格合法，不要包含 markdown 代码块标记"#,
+        teaching_style
+    );
+
+    let user_prompt = format!(
+        "请为以下课程生成详细的教学大纲：\n\
+        课程名称：{}\n\
+        目标水平：{}\n\
+        总时长：{}\n\
+        教学风格：{}\n\
+        用户基础知识水平：{}\n\n\
+        请返回 JSON 格式的课程大纲。",
+        course_name, target_level, duration, teaching_style, base_knowledge
+    );
+
+    let messages = vec![
+        ChatMessage { role: "system".to_string(), content: system_prompt },
+        ChatMessage { role: "user".to_string(), content: user_prompt },
+    ];
+
+    let response = chat(config, messages).await?;
+
+    // 解析 JSON 结果
+    let plan: CoursePlanOutline = serde_json::from_str(&response)
+        .map_err(|e| AIError::ParseError(format!("解析课程大纲失败: {}", e)))?;
+
+    Ok(plan)
+}
+
+/// 课程计划大纲（AI 生成输出）
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CoursePlanOutline {
+    pub course_name: String,
+    pub target_level: String,
+    pub duration: String,
+    pub teaching_style: String,
+    pub chapters: Vec<ChapterPlanOutline>,
+}
+
+/// 章节大纲
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ChapterPlanOutline {
+    pub chapter_index: i32,
+    pub chapter_name: String,
+    pub lessons: Vec<LessonPlanOutline>,
+}
+
+/// 课时大纲
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LessonPlanOutline {
+    pub lesson_index: i32,
+    pub lesson_name: String,
+    pub duration: String,
+}
+
 /// 生成结构化练习题
 pub async fn generate_structured_exercise(
     config: &AIConfig,

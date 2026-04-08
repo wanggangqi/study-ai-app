@@ -96,12 +96,14 @@ pub use sync::{
     export_learning_records,
     sync_course_to_git_command,
     create_course_repository_command,
+    ai_generate_course_plan_command,
     SyncResult,
     SyncError,
     CoursePlan,
     ChapterPlan,
     LessonPlan,
     LearningRecords,
+    AIGenerateCoursePlanParams,
 };
 
 pub use gitee::{
