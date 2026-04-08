@@ -326,8 +326,8 @@ pub fn create_course_repo_structure(base_path: &str, course_name: &str) -> Resul
     Ok(())
 }
 
-/// 同步课程数据到本地 Git 仓库
-pub fn sync_course_to_git(
+/// 同步课程数据到本地 Git 仓库（内部实现）
+pub(crate) fn sync_course_to_git_impl(
     db: &DbState,
     course_id: &str,
 ) -> Result<SyncResult, SyncError> {
@@ -405,9 +405,8 @@ pub fn sync_course_to_git(
     })
 }
 
-/// 创建课程仓库（本地 + 码云）
-#[allow(dead_code)]
-pub async fn create_course_repository(
+/// 创建课程仓库（本地 + 码云）（内部实现）
+pub(crate) async fn create_course_repository_impl(
     db: &DbState,
     course_id: &str,
 ) -> Result<SyncResult, SyncError> {
@@ -431,11 +430,12 @@ pub async fn create_course_repository(
         .ok_or(SyncError::GiteeNotConfigured)?;
 
     // 获取课程信息
-    let database = db.0.lock().map_err(|e| SyncError::DbError(e.to_string()))?;
-    let guard = database.get_connection();
-    let course = get_course_by_id(&guard, course_id)
-        .map_err(|e| SyncError::DbError(e.to_string()))?;
-    drop(guard);
+    let course = {
+        let database = db.0.lock().map_err(|e| SyncError::DbError(e.to_string()))?;
+        let guard = database.get_connection();
+        get_course_by_id(&guard, course_id)
+            .map_err(|e| SyncError::DbError(e.to_string()))?
+    };
 
     let repo_name = format!("{}-course", course.name);
 
@@ -478,4 +478,29 @@ pub async fn create_course_repository(
         message: "仓库创建成功".to_string(),
         repo_url: Some(gitee_repo.html_url),
     })
+}
+
+// ==================== Tauri 命令 ====================
+
+use tauri::State;
+
+/// 同步课程数据到 Git 仓库
+#[tauri::command]
+pub fn sync_course_to_git_command(
+    db: State<'_, DbState>,
+    course_id: String,
+) -> Result<SyncResult, String> {
+    sync_course_to_git_impl(&*db, &course_id)
+        .map_err(|e| e.to_string())
+}
+
+/// 创建课程仓库（本地 + 码云）
+#[tauri::command]
+pub async fn create_course_repository_command(
+    db: State<'_, DbState>,
+    course_id: String,
+) -> Result<SyncResult, String> {
+    create_course_repository_impl(&*db, &course_id)
+        .await
+        .map_err(|e| e.to_string())
 }

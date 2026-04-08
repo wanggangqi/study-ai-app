@@ -94,8 +94,8 @@ pub use git::{
 pub use sync::{
     export_course_plan,
     export_learning_records,
-    sync_course_to_git,
-    create_course_repository,
+    sync_course_to_git_command,
+    create_course_repository_command,
     SyncResult,
     SyncError,
     CoursePlan,

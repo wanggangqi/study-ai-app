@@ -76,6 +76,9 @@ use commands::{
     verify_gitee_account_command,
     create_gitee_repo_command,
     check_gitee_repo_exists_command,
+    // 同步命令
+    sync_course_to_git_command,
+    create_course_repository_command,
     // AI 命令
     ai_chat_command,
     ai_generate_lesson_command,
@@ -178,6 +181,9 @@ pub fn run() {
             verify_gitee_account_command,
             create_gitee_repo_command,
             check_gitee_repo_exists_command,
+            // 同步相关命令
+            sync_course_to_git_command,
+            create_course_repository_command,
             // AI 相关命令
             ai_chat_command,
             ai_generate_lesson_command,
