@@ -25,15 +25,16 @@ export const SetupWizard: React.FC = () => {
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(0);
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
-  const { setSetupComplete } = useConfigStore();
+  const { setConfig, saveConfig } = useConfigStore();
 
-  const handleStepComplete = (stepIndex: number) => {
+  const handleStepComplete = async (stepIndex: number) => {
     setCompletedSteps(prev => new Set([...prev, stepIndex]));
     if (currentStep < STEPS.length - 1) {
       setCurrentStep(currentStep + 1);
     } else {
-      // 所有步骤完成
-      setSetupComplete(true);
+      // 所有步骤完成，保存配置并跳转到首页
+      setConfig({ setupCompleted: true });
+      await saveConfig();
       navigate('/');
     }
   };

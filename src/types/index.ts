@@ -8,9 +8,9 @@ export interface AuthState {
   machineHash: string | null;
 }
 
-// 用户配置
+// 用户配置（与后端 AppConfig 对应）
 export interface UserConfig {
-  giteeUsername: string;
+  setupCompleted: boolean;
   giteeToken: string;
   workspacePath: string;
   aiProvider: AIProvider;

@@ -100,60 +100,6 @@ pub fn get_git_version() -> Result<String, GitError> {
     Ok(String::from_utf8_lossy(&output.stdout).trim().to_string())
 }
 
-/// 配置 Git 用户名
-pub fn set_git_config_username(username: &str) -> Result<(), GitError> {
-    let output = run_git_command_internal(&["config", "--global", "user.name", username], None)?;
-    if output.status.success() {
-        Ok(())
-    } else {
-        Err(GitError::ConfigError(
-            String::from_utf8_lossy(&output.stderr).to_string()
-        ))
-    }
-}
-
-/// 配置 Git 邮箱
-pub fn set_git_config_email(email: &str) -> Result<(), GitError> {
-    let output = run_git_command_internal(&["config", "--global", "user.email", email], None)?;
-    if output.status.success() {
-        Ok(())
-    } else {
-        Err(GitError::ConfigError(
-            String::from_utf8_lossy(&output.stderr).to_string()
-        ))
-    }
-}
-
-/// 获取 Git 用户名
-pub fn get_git_config_username() -> Result<Option<String>, GitError> {
-    let output = run_git_command_internal(&["config", "--global", "--get", "user.name"], None)?;
-    if output.status.success() {
-        let name = String::from_utf8_lossy(&output.stdout).trim().to_string();
-        if name.is_empty() {
-            Ok(None)
-        } else {
-            Ok(Some(name))
-        }
-    } else {
-        Ok(None)
-    }
-}
-
-/// 获取 Git 邮箱
-pub fn get_git_config_email() -> Result<Option<String>, GitError> {
-    let output = run_git_command_internal(&["config", "--global", "--get", "user.email"], None)?;
-    if output.status.success() {
-        let email = String::from_utf8_lossy(&output.stdout).trim().to_string();
-        if email.is_empty() {
-            Ok(None)
-        } else {
-            Ok(Some(email))
-        }
-    } else {
-        Ok(None)
-    }
-}
-
 /// 初始化本地 Git 仓库
 pub fn init_repo(path: &str) -> Result<(), GitError> {
     let output = run_git_command_internal(&["init"], Some(path))?;
@@ -295,4 +241,25 @@ pub fn set_default_branch(path: &str, branch: &str) -> Result<(), GitError> {
             String::from_utf8_lossy(&output.stderr).to_string()
         ))
     }
+}
+
+/// 设置仓库级别的 Git 用户名和邮箱（在初始化仓库后调用）
+pub fn set_repo_git_config(path: &str, username: &str, email: &str) -> Result<(), GitError> {
+    // 设置用户名的
+    let output = run_git_command_internal(&["config", "user.name", username], Some(path))?;
+    if !output.status.success() {
+        return Err(GitError::ConfigError(
+            String::from_utf8_lossy(&output.stderr).to_string()
+        ));
+    }
+
+    // 设置邮箱
+    let output = run_git_command_internal(&["config", "user.email", email], Some(path))?;
+    if !output.status.success() {
+        return Err(GitError::ConfigError(
+            String::from_utf8_lossy(&output.stderr).to_string()
+        ));
+    }
+
+    Ok(())
 }

@@ -10,7 +10,7 @@ export const GitSetupStep: React.FC<SetupStepProps> = ({ onNext, onBack }) => {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [isChecking, setIsChecking] = useState(true);
-  const { setConfig } = useConfigStore();
+  const { setConfig, saveConfig } = useConfigStore();
 
   useEffect(() => {
     checkGitInstallation();
@@ -18,7 +18,7 @@ export const GitSetupStep: React.FC<SetupStepProps> = ({ onNext, onBack }) => {
 
   const checkGitInstallation = async () => {
     try {
-      const result = await invoke<boolean>('check_git_installed');
+      const result = await invoke<boolean>('check_git_installed_command');
       setIsGitInstalled(result);
     } catch (error) {
       console.error('Failed to check git:', error);
@@ -34,12 +34,12 @@ export const GitSetupStep: React.FC<SetupStepProps> = ({ onNext, onBack }) => {
     }
 
     try {
-      await invoke('set_git_username', { username });
-      await invoke('set_git_email', { email });
+      // 保存到配置文件，初始化仓库时会设置为项目级别的 git 配置
       setConfig({ gitUsername: username, gitEmail: email });
+      await saveConfig();
       onNext();
     } catch (error) {
-      console.error('Failed to set git config:', error);
+      console.error('Failed to save git config:', error);
     }
   };
 

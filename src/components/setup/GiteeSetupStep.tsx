@@ -5,14 +5,13 @@ import { Button } from '../common/Button';
 import { SetupStepProps } from './SetupWizard';
 
 export const GiteeSetupStep: React.FC<SetupStepProps> = ({ onNext, onBack }) => {
-  const [username, setUsername] = useState('');
   const [token, setToken] = useState('');
   const [isValidating, setIsValidating] = useState(false);
   const [error, setError] = useState('');
-  const { setConfig } = useConfigStore();
+  const { setConfig, saveConfig } = useConfigStore();
 
   const handleSubmit = async () => {
-    if (!username.trim() || !token.trim()) {
+    if (!token.trim()) {
       return;
     }
 
@@ -20,12 +19,12 @@ export const GiteeSetupStep: React.FC<SetupStepProps> = ({ onNext, onBack }) => 
     setError('');
 
     try {
-      // TODO: 调用后端验证码云账户
-      // 目前先保存配置
-      setConfig({ giteeUsername: username, giteeToken: token });
+      // 保存 token 到配置文件
+      setConfig({ giteeToken: token });
+      await saveConfig();
       onNext();
     } catch (err) {
-      setError('验证失败，请检查用户名和令牌');
+      setError('保存失败，请重试');
     } finally {
       setIsValidating(false);
     }
@@ -36,16 +35,10 @@ export const GiteeSetupStep: React.FC<SetupStepProps> = ({ onNext, onBack }) => 
       <div className="text-center mb-6">
         <div className="text-4xl mb-4">🔐</div>
         <h2 className="text-xl font-bold mb-2">码云账户配置</h2>
-        <p className="text-text-secondary">配置你的码云（Gitee）账户信息</p>
+        <p className="text-text-secondary">配置你的码云（Gitee）访问令牌</p>
       </div>
 
       <div className="space-y-4">
-        <Input
-          label="码云用户名"
-          placeholder="请输入你的码云用户名"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-        />
         <Input
           label="个人访问令牌"
           type="password"
@@ -71,7 +64,7 @@ export const GiteeSetupStep: React.FC<SetupStepProps> = ({ onNext, onBack }) => 
         <Button variant="outline" onClick={onBack}>
           上一步
         </Button>
-        <Button onClick={handleSubmit} disabled={!username.trim() || !token.trim() || isValidating}>
+        <Button onClick={handleSubmit} disabled={!token.trim() || isValidating}>
           {isValidating ? '验证中...' : '下一步'}
         </Button>
       </div>

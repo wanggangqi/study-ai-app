@@ -139,7 +139,7 @@ pub async fn create_gitee_repo_internal(
 
 /// Tauri 命令：验证码云账户
 #[tauri::command]
-pub async fn verify_gitee_account(token: String) -> GiteeAccountResult {
+pub async fn verify_gitee_account_command(token: String) -> GiteeAccountResult {
     match verify_gitee_account_internal(&token).await {
         Ok(response) => GiteeAccountResult {
             success: true,
@@ -156,7 +156,7 @@ pub async fn verify_gitee_account(token: String) -> GiteeAccountResult {
 
 /// Tauri 命令：创建码云仓库
 #[tauri::command]
-pub async fn create_gitee_repo(
+pub async fn create_gitee_repo_command(
     token: String,
     repo_name: String,
     description: String,
@@ -178,7 +178,7 @@ pub async fn create_gitee_repo(
 
 /// Tauri 命令：检查仓库是否存在
 #[tauri::command]
-pub async fn check_gitee_repo_exists(token: String, owner: String, repo: String) -> bool {
+pub async fn check_gitee_repo_exists_command(token: String, owner: String, repo: String) -> bool {
     let url = format!("{}/repos/{}/{}", GITEE_API_BASE, owner, repo);
 
     let client = reqwest::Client::new();

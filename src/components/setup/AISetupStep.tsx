@@ -20,7 +20,7 @@ export const AISetupStep: React.FC<SetupStepProps> = ({ onNext, onBack }) => {
   const [selectedModel, setSelectedModel] = useState('');
   const [isValidating, setIsValidating] = useState(false);
   const [error, setError] = useState('');
-  const { setConfig } = useConfigStore();
+  const { setConfig, saveConfig } = useConfigStore();
 
   const handleProviderSelect = (providerId: string) => {
     setSelectedProvider(providerId);
@@ -42,6 +42,7 @@ export const AISetupStep: React.FC<SetupStepProps> = ({ onNext, onBack }) => {
         aiApiKey: apiKey,
         aiModel: selectedModel,
       });
+      await saveConfig();
       onNext();
     } catch (err) {
       setError('配置保存失败');

@@ -4,6 +4,7 @@ import { Sidebar } from '../components/common/Sidebar';
 import { Card } from '../components/common/Card';
 import { Button } from '../components/common/Button';
 import { Input } from '../components/common/Input';
+import { message } from '@tauri-apps/plugin-dialog';
 
 const navItems = [
   { icon: '📚', label: '课程', path: '/' },
@@ -21,10 +22,10 @@ export const ConsultantPage: React.FC = () => {
   const navigate = useNavigate();
   const [customTopic, setCustomTopic] = useState('');
 
-  const handleTopicSelect = (topic: string) => {
+  const handleTopicSelect = async (topic: string) => {
     // TODO: Phase 4 实现实际的 AI 咨询逻辑
     console.log('选择主题:', topic);
-    alert(`你选择了: ${topic}\n\nAI 咨询功能将在 Phase 4 实现。`);
+    await message(`你选择了: ${topic}\n\nAI 咨询功能将在 Phase 4 实现。`, { title: '提示', kind: 'info' });
   };
 
   const handleStartConsult = () => {

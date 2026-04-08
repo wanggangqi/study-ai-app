@@ -435,7 +435,7 @@ mod tests {
 
     #[test]
     fn test_parse_invalid_license() {
-        let result = parse_and_decrypt_license("invalid_key");
+        let result = parse_and_verify_license("invalid_key");
         assert!(result.is_err());
     }
 }

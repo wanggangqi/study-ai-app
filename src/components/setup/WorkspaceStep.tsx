@@ -7,7 +7,7 @@ import { open } from '@tauri-apps/plugin-dialog';
 export const WorkspaceStep: React.FC<SetupStepProps> = ({ onNext, onBack }) => {
   const [workspacePath, setWorkspacePath] = useState('');
   const [error, setError] = useState('');
-  const { setConfig } = useConfigStore();
+  const { setConfig, saveConfig } = useConfigStore();
 
   const handleSelectFolder = async () => {
     try {
@@ -27,12 +27,13 @@ export const WorkspaceStep: React.FC<SetupStepProps> = ({ onNext, onBack }) => {
     }
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!workspacePath.trim()) {
       return;
     }
 
     setConfig({ workspacePath });
+    await saveConfig();
     onNext();
   };
 

@@ -59,12 +59,7 @@ export const tauriService = {
   },
 
   async checkGitInstalled(): Promise<boolean> {
-    return invoke('check_git_installed');
-  },
-
-  async setGitConfig(username: string, email: string): Promise<void> {
-    await invoke('set_git_username', { username });
-    await invoke('set_git_email', { email });
+    return invoke('check_git_installed_command');
   },
 
   async createGiteeRepo(name: string, description: string): Promise<string> {

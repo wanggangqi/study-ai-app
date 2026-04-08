@@ -7,6 +7,7 @@ pub mod crypto;
 pub mod license;
 pub mod git_ops;
 pub mod ai;
+pub mod config;
 
 pub use machine_id::{get_machine_id, get_machine_hash, MachineIdError};
 pub use crypto::{
@@ -20,13 +21,10 @@ pub use license::{
     is_admin_password_set, set_admin_password, verify_admin_password, change_admin_password,
     get_signing_key,
 };
+pub use config::{AppConfig, load_config, save_config, update_config, ConfigError};
 pub use git_ops::{
     is_git_installed,
     get_git_version,
-    set_git_config_username,
-    set_git_config_email,
-    get_git_config_username,
-    get_git_config_email,
     init_repo,
     clone_repo,
     add_files,
@@ -39,6 +37,7 @@ pub use git_ops::{
     has_remote,
     add_remote,
     set_default_branch,
+    set_repo_git_config,
     GitError,
 };
 pub use ai::{

@@ -3,6 +3,7 @@
 //! 提供与前端交互的 Tauri 命令
 
 pub mod auth;
+pub mod config;
 pub mod database;
 pub mod git;
 pub mod gitee;
@@ -47,48 +48,44 @@ pub use auth::{
 
 pub use database::{
     DbState,
-    create_course,
-    get_all_courses,
-    get_course_by_id,
-    update_course,
-    delete_course,
-    create_chapter,
-    get_chapters_by_course,
-    update_chapter,
-    delete_chapter,
-    create_lesson,
-    get_lessons_by_chapter,
-    get_lesson_by_id,
-    update_lesson_status,
-    update_lesson,
-    delete_lesson,
-    create_exercise,
-    get_exercises_by_lesson,
-    update_exercise_score,
-    delete_exercise,
-    create_chat_message,
-    get_chat_messages_by_course,
-    get_chat_messages_by_lesson,
-    delete_chat_message,
-    clear_chat_messages_by_course,
-    get_user_config,
-    update_user_config,
+    create_course_command,
+    get_all_courses_command,
+    get_course_by_id_command,
+    update_course_command,
+    delete_course_command,
+    create_chapter_command,
+    get_chapters_by_course_command,
+    update_chapter_command,
+    delete_chapter_command,
+    create_lesson_command,
+    get_lessons_by_chapter_command,
+    get_lesson_by_id_command,
+    update_lesson_status_command,
+    update_lesson_command,
+    delete_lesson_command,
+    create_exercise_command,
+    get_exercises_by_lesson_command,
+    update_exercise_score_command,
+    delete_exercise_command,
+    create_chat_message_command,
+    get_chat_messages_by_course_command,
+    get_chat_messages_by_lesson_command,
+    delete_chat_message_command,
+    clear_chat_messages_by_course_command,
+    get_user_config_command,
+    update_user_config_command,
 };
 
 pub use git::{
-    check_git_status,
-    check_git_installed,
-    get_git_config,
-    set_git_username,
-    set_git_email,
-    git_init,
-    git_clone,
-    git_commit,
-    git_push,
-    git_pull,
-    git_has_changes,
+    check_git_status_command,
+    check_git_installed_command,
+    git_init_command,
+    git_clone_command,
+    git_commit_command,
+    git_push_command,
+    git_pull_command,
+    git_has_changes_command,
     GitStatus,
-    GitConfig,
     GitResult,
 };
 
@@ -106,11 +103,17 @@ pub use sync::{
 };
 
 pub use gitee::{
-    verify_gitee_account,
-    create_gitee_repo,
-    check_gitee_repo_exists,
+    verify_gitee_account_command,
+    create_gitee_repo_command,
+    check_gitee_repo_exists_command,
     GiteeRepo,
     GiteeError,
     GiteeAccountResult,
     GiteeRepoResult,
+};
+
+pub use config::{
+    get_config_command,
+    set_config_command,
+    update_config_command,
 };

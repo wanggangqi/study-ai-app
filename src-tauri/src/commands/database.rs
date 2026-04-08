@@ -43,7 +43,7 @@ type DbResult<T> = Result<T, DbCommandError>;
 
 /// 创建课程
 #[tauri::command]
-pub fn create_course(
+pub fn create_course_command(
     state: State<DbState>,
     name: String,
     target_level: Option<String>,
@@ -58,7 +58,7 @@ pub fn create_course(
 
 /// 获取所有课程
 #[tauri::command]
-pub fn get_all_courses(state: State<DbState>) -> DbResult<Vec<Course>> {
+pub fn get_all_courses_command(state: State<DbState>) -> DbResult<Vec<Course>> {
     let db = state.0.lock().unwrap();
     let conn = db.get_connection();
     operations::get_all_courses(&conn).map_err(|e| DbCommandError::from(e))
@@ -66,7 +66,7 @@ pub fn get_all_courses(state: State<DbState>) -> DbResult<Vec<Course>> {
 
 /// 根据 ID 获取课程
 #[tauri::command]
-pub fn get_course_by_id(state: State<DbState>, id: String) -> DbResult<Course> {
+pub fn get_course_by_id_command(state: State<DbState>, id: String) -> DbResult<Course> {
     let db = state.0.lock().unwrap();
     let conn = db.get_connection();
     operations::get_course_by_id(&conn, &id).map_err(|e| DbCommandError::from(e))
@@ -74,7 +74,7 @@ pub fn get_course_by_id(state: State<DbState>, id: String) -> DbResult<Course> {
 
 /// 更新课程
 #[tauri::command]
-pub fn update_course(
+pub fn update_course_command(
     state: State<DbState>,
     id: String,
     name: Option<String>,
@@ -93,7 +93,7 @@ pub fn update_course(
 
 /// 删除课程
 #[tauri::command]
-pub fn delete_course(state: State<DbState>, id: String) -> DbResult<()> {
+pub fn delete_course_command(state: State<DbState>, id: String) -> DbResult<()> {
     let db = state.0.lock().unwrap();
     let conn = db.get_connection();
     operations::delete_course(&conn, &id).map_err(|e| DbCommandError::from(e))
@@ -103,7 +103,7 @@ pub fn delete_course(state: State<DbState>, id: String) -> DbResult<()> {
 
 /// 创建章节
 #[tauri::command]
-pub fn create_chapter(
+pub fn create_chapter_command(
     state: State<DbState>,
     course_id: String,
     chapter_index: i32,
@@ -117,7 +117,7 @@ pub fn create_chapter(
 
 /// 获取课程的所有章节
 #[tauri::command]
-pub fn get_chapters_by_course(state: State<DbState>, course_id: String) -> DbResult<Vec<Chapter>> {
+pub fn get_chapters_by_course_command(state: State<DbState>, course_id: String) -> DbResult<Vec<Chapter>> {
     let db = state.0.lock().unwrap();
     let conn = db.get_connection();
     operations::get_chapters_by_course(&conn, &course_id).map_err(|e| DbCommandError::from(e))
@@ -125,7 +125,7 @@ pub fn get_chapters_by_course(state: State<DbState>, course_id: String) -> DbRes
 
 /// 更新章节
 #[tauri::command]
-pub fn update_chapter(
+pub fn update_chapter_command(
     state: State<DbState>,
     id: String,
     name: Option<String>,
@@ -139,7 +139,7 @@ pub fn update_chapter(
 
 /// 删除章节
 #[tauri::command]
-pub fn delete_chapter(state: State<DbState>, id: String) -> DbResult<()> {
+pub fn delete_chapter_command(state: State<DbState>, id: String) -> DbResult<()> {
     let db = state.0.lock().unwrap();
     let conn = db.get_connection();
     operations::delete_chapter(&conn, &id).map_err(|e| DbCommandError::from(e))
@@ -149,7 +149,7 @@ pub fn delete_chapter(state: State<DbState>, id: String) -> DbResult<()> {
 
 /// 创建课时
 #[tauri::command]
-pub fn create_lesson(
+pub fn create_lesson_command(
     state: State<DbState>,
     chapter_id: String,
     lesson_index: i32,
@@ -164,7 +164,7 @@ pub fn create_lesson(
 
 /// 获取章节的所有课时
 #[tauri::command]
-pub fn get_lessons_by_chapter(state: State<DbState>, chapter_id: String) -> DbResult<Vec<Lesson>> {
+pub fn get_lessons_by_chapter_command(state: State<DbState>, chapter_id: String) -> DbResult<Vec<Lesson>> {
     let db = state.0.lock().unwrap();
     let conn = db.get_connection();
     operations::get_lessons_by_chapter(&conn, &chapter_id).map_err(|e| DbCommandError::from(e))
@@ -172,7 +172,7 @@ pub fn get_lessons_by_chapter(state: State<DbState>, chapter_id: String) -> DbRe
 
 /// 根据 ID 获取课时
 #[tauri::command]
-pub fn get_lesson_by_id(state: State<DbState>, id: String) -> DbResult<Lesson> {
+pub fn get_lesson_by_id_command(state: State<DbState>, id: String) -> DbResult<Lesson> {
     let db = state.0.lock().unwrap();
     let conn = db.get_connection();
     operations::get_lesson_by_id(&conn, &id).map_err(|e| DbCommandError::from(e))
@@ -180,7 +180,7 @@ pub fn get_lesson_by_id(state: State<DbState>, id: String) -> DbResult<Lesson> {
 
 /// 更新课时状态
 #[tauri::command]
-pub fn update_lesson_status(
+pub fn update_lesson_status_command(
     state: State<DbState>,
     id: String,
     status: i32,
@@ -194,7 +194,7 @@ pub fn update_lesson_status(
 
 /// 更新课时
 #[tauri::command]
-pub fn update_lesson(
+pub fn update_lesson_command(
     state: State<DbState>,
     id: String,
     name: Option<String>,
@@ -210,7 +210,7 @@ pub fn update_lesson(
 
 /// 删除课时
 #[tauri::command]
-pub fn delete_lesson(state: State<DbState>, id: String) -> DbResult<()> {
+pub fn delete_lesson_command(state: State<DbState>, id: String) -> DbResult<()> {
     let db = state.0.lock().unwrap();
     let conn = db.get_connection();
     operations::delete_lesson(&conn, &id).map_err(|e| DbCommandError::from(e))
@@ -220,7 +220,7 @@ pub fn delete_lesson(state: State<DbState>, id: String) -> DbResult<()> {
 
 /// 创建练习记录
 #[tauri::command]
-pub fn create_exercise(
+pub fn create_exercise_command(
     state: State<DbState>,
     lesson_id: String,
     exercise_file: Option<String>,
@@ -233,7 +233,7 @@ pub fn create_exercise(
 
 /// 获取课时的所有练习
 #[tauri::command]
-pub fn get_exercises_by_lesson(state: State<DbState>, lesson_id: String) -> DbResult<Vec<LessonExercise>> {
+pub fn get_exercises_by_lesson_command(state: State<DbState>, lesson_id: String) -> DbResult<Vec<LessonExercise>> {
     let db = state.0.lock().unwrap();
     let conn = db.get_connection();
     operations::get_exercises_by_lesson(&conn, &lesson_id).map_err(|e| DbCommandError::from(e))
@@ -241,7 +241,7 @@ pub fn get_exercises_by_lesson(state: State<DbState>, lesson_id: String) -> DbRe
 
 /// 更新练习成绩
 #[tauri::command]
-pub fn update_exercise_score(
+pub fn update_exercise_score_command(
     state: State<DbState>,
     id: String,
     score: i32,
@@ -255,7 +255,7 @@ pub fn update_exercise_score(
 
 /// 删除练习记录
 #[tauri::command]
-pub fn delete_exercise(state: State<DbState>, id: String) -> DbResult<()> {
+pub fn delete_exercise_command(state: State<DbState>, id: String) -> DbResult<()> {
     let db = state.0.lock().unwrap();
     let conn = db.get_connection();
     operations::delete_exercise(&conn, &id).map_err(|e| DbCommandError::from(e))
@@ -265,7 +265,7 @@ pub fn delete_exercise(state: State<DbState>, id: String) -> DbResult<()> {
 
 /// 创建聊天消息
 #[tauri::command]
-pub fn create_chat_message(
+pub fn create_chat_message_command(
     state: State<DbState>,
     course_id: String,
     lesson_id: Option<String>,
@@ -283,7 +283,7 @@ pub fn create_chat_message(
 
 /// 获取课程的所有聊天消息
 #[tauri::command]
-pub fn get_chat_messages_by_course(state: State<DbState>, course_id: String) -> DbResult<Vec<ChatMessage>> {
+pub fn get_chat_messages_by_course_command(state: State<DbState>, course_id: String) -> DbResult<Vec<ChatMessage>> {
     let db = state.0.lock().unwrap();
     let conn = db.get_connection();
     operations::get_chat_messages_by_course(&conn, &course_id).map_err(|e| DbCommandError::from(e))
@@ -291,7 +291,7 @@ pub fn get_chat_messages_by_course(state: State<DbState>, course_id: String) -> 
 
 /// 获取课时的聊天消息
 #[tauri::command]
-pub fn get_chat_messages_by_lesson(state: State<DbState>, lesson_id: String) -> DbResult<Vec<ChatMessage>> {
+pub fn get_chat_messages_by_lesson_command(state: State<DbState>, lesson_id: String) -> DbResult<Vec<ChatMessage>> {
     let db = state.0.lock().unwrap();
     let conn = db.get_connection();
     operations::get_chat_messages_by_lesson(&conn, &lesson_id).map_err(|e| DbCommandError::from(e))
@@ -299,7 +299,7 @@ pub fn get_chat_messages_by_lesson(state: State<DbState>, lesson_id: String) -> 
 
 /// 删除聊天消息
 #[tauri::command]
-pub fn delete_chat_message(state: State<DbState>, id: String) -> DbResult<()> {
+pub fn delete_chat_message_command(state: State<DbState>, id: String) -> DbResult<()> {
     let db = state.0.lock().unwrap();
     let conn = db.get_connection();
     operations::delete_chat_message(&conn, &id).map_err(|e| DbCommandError::from(e))
@@ -307,7 +307,7 @@ pub fn delete_chat_message(state: State<DbState>, id: String) -> DbResult<()> {
 
 /// 清空课程的所有聊天消息
 #[tauri::command]
-pub fn clear_chat_messages_by_course(state: State<DbState>, course_id: String) -> DbResult<()> {
+pub fn clear_chat_messages_by_course_command(state: State<DbState>, course_id: String) -> DbResult<()> {
     let db = state.0.lock().unwrap();
     let conn = db.get_connection();
     operations::clear_chat_messages_by_course(&conn, &course_id).map_err(|e| DbCommandError::from(e))
@@ -317,7 +317,7 @@ pub fn clear_chat_messages_by_course(state: State<DbState>, course_id: String) -
 
 /// 获取用户配置
 #[tauri::command]
-pub fn get_user_config(state: State<DbState>) -> DbResult<UserConfig> {
+pub fn get_user_config_command(state: State<DbState>) -> DbResult<UserConfig> {
     let db = state.0.lock().unwrap();
     let conn = db.get_connection();
     operations::get_or_create_user_config(&conn).map_err(|e| DbCommandError::from(e))
@@ -325,7 +325,7 @@ pub fn get_user_config(state: State<DbState>) -> DbResult<UserConfig> {
 
 /// 更新用户配置
 #[tauri::command]
-pub fn update_user_config(
+pub fn update_user_config_command(
     state: State<DbState>,
     gitee_username: Option<String>,
     gitee_token: Option<String>,

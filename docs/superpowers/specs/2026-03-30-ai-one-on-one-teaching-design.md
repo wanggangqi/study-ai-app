@@ -89,24 +89,50 @@
 
 ## 3. 授权系统
 
-### 3.1 密钥格式
+### 3.1 密钥格式（Ed25519 签名）
 
 ```
-密钥结构: BASE64(AES加密(机器码哈希 + 有效期时间戳 + 签名))
+密钥结构: Base64(JSON数据) | Base64(Ed25519签名)
 
-解密后内容:
+JSON数据:
 {
-  "machineHash": "a3f2b1c9...",   // 用户机器码的SHA256哈希
-  "expireAt": "2025-12-31",       // 有效期截止日期
-  "signature": "xyz123..."        // 开发者签名防篡改
+  "machine_hash": "a3f2b1c9...",   // 用户机器码的SHA256哈希
+  "expire_at": "2025-12-31"       // 有效期截止日期
 }
+
+签名: Ed25519 签名，使用管理员私钥签名 JSON 数据
 ```
+
+**密钥生成流程：**
+1. 收集用户机器码（SHA256 哈希）
+2. 构建 JSON 数据（包含 machine_hash 和 expire_at）
+3. 使用 Ed25519 私钥对 JSON 进行签名
+4. 组合：Base64(JSON) | Base64(签名)
+
+**密钥验证流程：**
+1. 分离 JSON 和签名
+2. 使用公钥验证签名
+3. 解析 JSON 获取 machine_hash
+4. 比对当前机器码
+5. 检查 expire_at 是否过期
 
 ### 3.2 机器码获取
 
 采用多个硬件特征组合：CPU ID + 硬盘序列号 + MAC 地址 → SHA256 哈希
 
-### 3.3 授权流程
+### 3.3 签名密钥管理
+
+| 角色 | 密钥 | 用途 |
+|------|------|------|
+| 管理员 | 私钥（Base64） | 生成许可证签名 |
+| 应用 | 公钥（Base64） | 验证许可证签名 |
+
+**重要：**
+- 私钥由管理员妥善保管，用于生成用户许可证
+- 公钥内置于应用中，用于验证许可证
+- 首次使用需要在管理员模式初始化签名密钥
+
+### 3.4 授权流程
 
 ```
 启动应用
@@ -547,7 +573,114 @@ study-ai-app/
 
 ---
 
-## 10. 验收标准
+## 10. Tauri 命令列表
+
+### 10.1 授权相关命令
+
+| 命令名 | 参数 | 返回值 | 说明 |
+|--------|------|--------|------|
+| `get_machine_id_command` | - | `String` | 获取机器码 |
+| `get_machine_hash_command` | - | `String` | 获取机器码哈希（SHA256） |
+| `validate_license_command` | `license_key: String` | `LicenseResult` | 验证授权密钥 |
+| `get_license_status_command` | - | `LicenseResult` | 获取当前授权状态 |
+| `is_admin_password_set_command` | - | `bool` | 检查管理员密码是否已设置 |
+| `set_admin_password_command` | `password: String` | `()` | 设置管理员密码（首次） |
+| `verify_admin_password_command` | `password: String` | `bool` | 验证管理员密码 |
+| `change_admin_password_command` | `old_password: String, new_password: String` | `()` | 修改管理员密码 |
+| `generate_license_key_command` | `expire_date: String, machine_hash: Option<String>` | `String` | 生成授权密钥 |
+| `generate_signing_key_pair_command` | - | `SigningKeyInfo` | 生成签名密钥对 |
+| `set_signing_key_command` | `signing_key: String` | `()` | 设置签名私钥（首次） |
+| `is_signing_key_set_command` | - | `bool` | 检查签名密钥是否已设置 |
+
+### 10.2 课程数据库命令
+
+| 命令名 | 参数 | 返回值 | 说明 |
+|--------|------|--------|------|
+| `create_course` | `course: object` | `()` | 创建课程 |
+| `get_all_courses` | - | `Vec<Course>` | 获取所有课程 |
+| `get_course_by_id` | `id: String` | `Course` | 获取课程详情 |
+| `update_course` | `course: object` | `()` | 更新课程 |
+| `delete_course` | `id: String` | `()` | 删除课程 |
+
+### 10.3 章节和课时命令
+
+| 命令名 | 参数 | 返回值 | 说明 |
+|--------|------|--------|------|
+| `create_chapter` | `chapter: object` | `()` | 创建章节 |
+| `get_chapters_by_course` | `course_id: String` | `Vec<Chapter>` | 获取课程的所有章节 |
+| `update_chapter` | `chapter: object` | `()` | 更新章节 |
+| `delete_chapter` | `id: String` | `()` | 删除章节 |
+| `create_lesson` | `lesson: object` | `()` | 创建课时 |
+| `get_lessons_by_chapter` | `chapter_id: String` | `Vec<Lesson>` | 获取章节的所有课时 |
+| `get_lesson_by_id` | `id: String` | `Lesson` | 获取课时详情 |
+| `update_lesson_status` | `id: String, status: i32` | `()` | 更新课时状态 |
+| `update_lesson` | `lesson: object` | `()` | 更新课时 |
+| `delete_lesson` | `id: String` | `()` | 删除课时 |
+
+### 10.4 练习题命令
+
+| 命令名 | 参数 | 返回值 | 说明 |
+|--------|------|--------|------|
+| `create_exercise` | `exercise: object` | `()` | 创建练习 |
+| `get_exercises_by_lesson` | `lesson_id: String` | `Vec<Exercise>` | 获取课时的所有练习 |
+| `update_exercise_score` | `id: String, score: i32, result_file: Option<String>` | `()` | 更新练习得分 |
+| `delete_exercise` | `id: String` | `()` | 删除练习 |
+
+### 10.5 聊天消息命令
+
+| 命令名 | 参数 | 返回值 | 说明 |
+|--------|------|--------|------|
+| `create_chat_message` | `message: object` | `()` | 创建聊天消息 |
+| `get_chat_messages_by_course` | `course_id: String` | `Vec<ChatMessage>` | 获取课程的所有聊天消息 |
+| `get_chat_messages_by_lesson` | `lesson_id: String` | `Vec<ChatMessage>` | 获取课时的所有聊天消息 |
+| `delete_chat_message` | `id: String` | `()` | 删除聊天消息 |
+| `clear_chat_messages_by_course` | `course_id: String` | `()` | 清除课程的所有聊天消息 |
+
+### 10.6 用户配置命令
+
+| 命令名 | 参数 | 返回值 | 说明 |
+|--------|------|--------|------|
+| `get_user_config` | - | `UserConfig` | 获取用户配置 |
+| `update_user_config` | `config: object` | `()` | 更新用户配置 |
+
+### 10.7 Git 相关命令
+
+| 命令名 | 参数 | 返回值 | 说明 |
+|--------|------|--------|------|
+| `check_git_installed` | - | `bool` | 检查 Git 是否已安装 |
+| `check_git_status` | - | `GitStatus` | 获取 Git 状态（安装情况和版本） |
+| `get_git_config` | - | `GitConfig` | 获取 Git 配置 |
+| `set_git_username` | `username: String` | `GitResult` | 设置 Git 用户名 |
+| `set_git_email` | `email: String` | `GitResult` | 设置 Git 邮箱 |
+| `git_init` | `path: String` | `GitResult` | 初始化 Git 仓库 |
+| `git_clone` | `url: String, path: String` | `GitResult` | 克隆仓库 |
+| `git_commit` | `path: String, message: String` | `GitResult` | 提交更改 |
+| `git_push` | `path: String` | `GitResult` | 推送到远程 |
+| `git_pull` | `path: String` | `GitResult` | 从远程拉取 |
+| `git_has_changes` | `path: String` | `GitResult` | 检查是否有未提交的更改 |
+
+### 10.8 码云相关命令
+
+| 命令名 | 参数 | 返回值 | 说明 |
+|--------|------|--------|------|
+| `verify_gitee_account` | `username: String, token: String` | `GiteeAccountResult` | 验证码云账户 |
+| `create_gitee_repo` | `name: String, description: String` | `GiteeRepo` | 创建码云仓库 |
+| `check_gitee_repo_exists` | `owner: String, repo: String` | `bool` | 检查仓库是否存在 |
+
+### 10.9 AI 相关命令
+
+| 命令名 | 参数 | 返回值 | 说明 |
+|--------|------|--------|------|
+| `ai_chat_command` | 见 `AIChatParams` | `AIResult` | AI 聊天 |
+| `ai_generate_lesson_command` | 见 `AIGenerateLessonParams` | `AIResult` | 生成课件 |
+| `ai_generate_exercise_command` | 见 `AIGenerateExerciseParams` | `AIResult` | 生成练习题 |
+| `ai_analyze_answers_command` | 见 `AIAnalyzeAnswersParams` | `AIResult` | 分析答案 |
+| `ai_verify_key_command` | 见 `AIVerifyKeyParams` | `bool` | 验证 API 密钥 |
+| `ai_generate_structured_exercise_command` | 见 `AIGenerateStructuredExerciseParams` | `AIStructuredExerciseResult` | 生成结构化练习题 |
+
+---
+
+## 11. 验收标准
 
 ### 10.1 功能验收
 
@@ -574,7 +707,7 @@ study-ai-app/
 
 ---
 
-## 11. 后续计划
+## 12. 后续计划
 
 ### Phase 1: 核心框架搭建
 - Tauri 项目初始化
