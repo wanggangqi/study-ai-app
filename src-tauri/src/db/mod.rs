@@ -66,13 +66,24 @@ impl Database {
         Ok(db)
     }
 
+    /// 获取应用数据目录
+    ///
+    /// 返回 `%LOCALAPPDATA%\com.studymate.app\localData`
+    fn get_app_data_dir() -> PathBuf {
+        std::env::var("LOCALAPPDATA")
+            .map(|p| PathBuf::from(p).join("com.studymate.app").join("localData"))
+            .unwrap_or_else(|_| {
+                dirs::data_local_dir()
+                    .unwrap_or_else(|| PathBuf::from("."))
+                    .join("StudyMate")
+            })
+    }
+
     /// 获取数据库路径
     ///
-    /// 返回 `%LOCALAPPDATA%\StudyMate\data.db`
+    /// 返回 `%LOCALAPPDATA%\com.studymate.app\localData\data.db`
     pub fn get_default_path() -> PathBuf {
-        let local_app_data = dirs::data_local_dir()
-            .unwrap_or_else(|| PathBuf::from("."));
-        local_app_data.join("StudyMate").join("data.db")
+        Self::get_app_data_dir().join("data.db")
     }
 
     /// 初始化数据库表结构
@@ -132,7 +143,7 @@ mod tests {
     fn test_get_default_path() {
         let path = Database::get_default_path();
         println!("Default database path: {:?}", path);
-        assert!(path.to_string_lossy().contains("StudyMate"));
+        assert!(path.to_string_lossy().contains("com.studymate.app"));
     }
 
     #[test]

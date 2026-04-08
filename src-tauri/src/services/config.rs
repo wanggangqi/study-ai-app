@@ -44,11 +44,20 @@ pub struct AppConfig {
     pub teaching_style: Option<String>,
 }
 
+/// 获取应用数据目录
+fn get_app_data_dir() -> PathBuf {
+    std::env::var("LOCALAPPDATA")
+        .map(|p| std::path::Path::new(&p).join("com.studymate.app").join("localData"))
+        .unwrap_or_else(|_| {
+            dirs::data_local_dir()
+                .unwrap_or_else(|| PathBuf::from("."))
+                .join("StudyMate")
+        })
+}
+
 /// 获取配置文件路径
 fn get_config_file_path() -> PathBuf {
-    let app_dir = dirs::data_local_dir()
-        .unwrap_or_else(|| PathBuf::from("."))
-        .join("StudyMate");
+    let app_dir = get_app_data_dir();
 
     if !app_dir.exists() {
         fs::create_dir_all(&app_dir).ok();
