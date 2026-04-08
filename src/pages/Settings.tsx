@@ -45,12 +45,21 @@ export const SettingsPage: React.FC = () => {
 
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null);
-  const [customStyleDesc, setCustomStyleDesc] = useState('');
 
   const currentProvider = aiProviders.find(p => p.id === aiProvider);
 
-  // 判断是否为自定义风格
-  const isCustomStyle = teachingStyle.startsWith('custom:');
+  // 从 teachingStyle 中解析自定义描述
+  const getCustomStyleDesc = (): string => {
+    if (teachingStyle.startsWith('custom:')) {
+      return teachingStyle.slice(7); // 去掉 "custom:" 前缀
+    }
+    return '';
+  };
+
+  // 判断是否为内置风格
+  const isBuiltInStyle = (styleId: string) => {
+    return builtInTeachingStyles.some(s => s.id === styleId);
+  };
 
   const handleTestConnection = async () => {
     if (!aiApiKey) {
@@ -84,20 +93,17 @@ export const SettingsPage: React.FC = () => {
 
   const handleStyleSelect = (styleId: string) => {
     if (styleId === 'custom') {
-      // 选择自定义风格，使用 custom: 前缀
-      const customId = customStyleDesc ? `custom:${customStyleDesc}` : 'custom:';
-      setConfig({ teachingStyle: customId });
+      // 选择自定义风格，保持之前的描述
+      const existingDesc = getCustomStyleDesc();
+      setConfig({ teachingStyle: existingDesc ? `custom:${existingDesc}` : 'custom:' });
     } else {
       setConfig({ teachingStyle: styleId });
     }
   };
 
   const handleCustomStyleChange = (desc: string) => {
-    setCustomStyleDesc(desc);
-    if (isCustomStyle) {
-      // 如果当前是自定义风格，更新描述
-      setConfig({ teachingStyle: desc ? `custom:${desc}` : 'custom:' });
-    }
+    // 输入描述时直接更新 teachingStyle
+    setConfig({ teachingStyle: desc ? `custom:${desc}` : 'custom:' });
   };
 
   const handleSave = async () => {
@@ -240,7 +246,7 @@ export const SettingsPage: React.FC = () => {
                 <button
                   onClick={() => handleStyleSelect('custom')}
                   className={`px-3 py-2 rounded-lg border-2 transition-all ${
-                    isCustomStyle
+                    !isBuiltInStyle(teachingStyle)
                       ? 'border-primary bg-primary/5'
                       : 'border-gray-200 hover:border-gray-300'
                   }`}
@@ -249,12 +255,12 @@ export const SettingsPage: React.FC = () => {
                 </button>
                 <span className="text-sm text-gray-500">描述你喜欢的教学风格</span>
               </div>
-              {isCustomStyle && (
+              {!isBuiltInStyle(teachingStyle) && (
                 <textarea
                   className="w-full border border-gray-300 rounded-md px-3 py-2 mt-2"
                   rows={2}
                   placeholder="例如：喜欢用图表和实例讲解，注重动手实践"
-                  value={customStyleDesc}
+                  value={getCustomStyleDesc()}
                   onChange={(e) => handleCustomStyleChange(e.target.value)}
                 />
               )}
