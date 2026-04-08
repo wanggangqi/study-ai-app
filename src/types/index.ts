@@ -118,6 +118,29 @@ export interface TeachingStyle {
   icon: string;
 }
 
+// 课时计划大纲
+export interface LessonPlanOutline {
+  lessonIndex: number;
+  lessonName: string;
+  duration: string;
+}
+
+// 章节计划大纲
+export interface ChapterPlanOutline {
+  chapterIndex: number;
+  chapterName: string;
+  lessons: LessonPlanOutline[];
+}
+
+// 课程计划大纲（AI 生成）
+export interface CoursePlanOutline {
+  courseName: string;
+  targetLevel: string;
+  duration: string;
+  teachingStyle: string;
+  chapters: ChapterPlanOutline[];
+}
+
 // 默认模型映射
 export const DEFAULT_MODELS: Record<AIProvider, string> = {
   claude: 'claude-3-sonnet-20240229',

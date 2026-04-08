@@ -1,5 +1,5 @@
 import { invoke } from '@tauri-apps/api/core';
-import type { Course } from '../types';
+import type { AIProvider, Course, CoursePlanOutline } from '../types';
 
 // 课时状态枚举（与后端 LessonStatus 对应）
 export enum LessonStatus {
@@ -104,5 +104,19 @@ export const tauriService = {
 
   async createCourseRepository(courseId: string): Promise<{ success: boolean; message: string; repoUrl?: string }> {
     return invoke('create_course_repository_command', { courseId });
+  },
+
+  // 课程大纲生成
+  async generateCoursePlan(params: {
+    provider: AIProvider;
+    apiKey: string;
+    model?: string;
+    courseName: string;
+    targetLevel: string;
+    duration: string;
+    teachingStyle: string;
+    baseKnowledge: string;
+  }): Promise<CoursePlanOutline> {
+    return invoke('ai_generate_course_plan_command', { params });
   },
 };
