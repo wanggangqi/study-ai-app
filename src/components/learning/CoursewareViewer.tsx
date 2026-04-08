@@ -1,5 +1,7 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import DOMPurify from 'dompurify';
+import { useCourseStore } from '../../stores/courseStore';
+import { generateLessonHTML } from '../../hooks/useAI';
 import './CoursewareViewer.css';
 
 interface CoursewareViewerProps {
@@ -10,12 +12,49 @@ interface CoursewareViewerProps {
 /**
  * 课件查看器组件
  * 用于渲染 AI 生成的 HTML 课件内容
+ * 如果没有课件内容，自动调用 AI 生成
  * 使用 DOMPurify 消毒 HTML 内容，防止 XSS 攻击
  */
 export const CoursewareViewer: React.FC<CoursewareViewerProps> = ({
   lessonId,
   content,
 }) => {
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const { currentCourse, currentChapter, currentLesson, setLessonContent } = useCourseStore();
+
+  useEffect(() => {
+    if (!content && currentCourse && currentChapter && currentLesson) {
+      loadLessonContent();
+    }
+  }, [lessonId, content]);
+
+  const loadLessonContent = async () => {
+    if (!currentCourse || !currentChapter || !currentLesson) return;
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const result = await generateLessonHTML(
+        currentCourse.name,
+        currentChapter.name,
+        currentLesson.name,
+        currentCourse.teachingStyle || '实战应用型'
+      );
+
+      if (result.success && result.data) {
+        setLessonContent(lessonId, result.data);
+      } else {
+        setError(result.error || '加载课件失败');
+      }
+    } catch (err) {
+      setError(String(err));
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   // 使用 DOMPurify 消毒 HTML 内容
   const sanitizedContent = useMemo(() => {
     if (!content) return null;
@@ -35,12 +74,33 @@ export const CoursewareViewer: React.FC<CoursewareViewerProps> = ({
     });
   }, [content]);
 
+  if (isLoading) {
+    return (
+      <div className="courseware-viewer-loading">
+        <div className="courseware-viewer-empty-icon">📖</div>
+        <p className="courseware-viewer-empty-title">正在生成课件...</p>
+        <p className="courseware-viewer-empty-hint">AI 正在为您创作个性化的学习内容</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="courseware-viewer-error">
+        <div className="courseware-viewer-empty-icon">⚠️</div>
+        <p className="courseware-viewer-empty-title">加载失败</p>
+        <p className="courseware-viewer-empty-hint">{error}</p>
+        <button onClick={loadLessonContent} className="courseware-retry-btn">重试</button>
+      </div>
+    );
+  }
+
   if (!sanitizedContent) {
     return (
       <div className="courseware-viewer-empty">
         <div className="courseware-viewer-empty-icon">📖</div>
-        <p className="courseware-viewer-empty-title">正在加载课件...</p>
-        <p className="courseware-viewer-empty-hint">课件内容将通过 AI 自动生成</p>
+        <p className="courseware-viewer-empty-title">暂无课件内容</p>
+        <p className="courseware-viewer-empty-hint">请先选择课程和课时</p>
       </div>
     );
   }
