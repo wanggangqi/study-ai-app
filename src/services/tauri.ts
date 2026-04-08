@@ -1,5 +1,5 @@
 import { invoke } from '@tauri-apps/api/core';
-import type { AIProvider, Chapter, Course, CoursePlanOutline } from '../types';
+import type { AIProvider, Chapter, Course, CoursePlanOutline, Lesson } from '../types';
 
 // 课时状态枚举（与后端 LessonStatus 对应）
 export enum LessonStatus {
@@ -84,7 +84,11 @@ export const tauriService = {
     return invoke('update_lesson_status_command', { id: lessonId, status });
   },
 
-  async getLessonsByChapter(chapterId: string): Promise<object[]> {
+  async getChaptersByCourse(courseId: string): Promise<Chapter[]> {
+    return invoke('get_chapters_by_course_command', { courseId });
+  },
+
+  async getLessonsByChapter(chapterId: string): Promise<Lesson[]> {
     return invoke('get_lessons_by_chapter_command', { chapterId });
   },
 

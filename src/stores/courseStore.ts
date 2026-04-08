@@ -56,7 +56,8 @@ interface CourseStore {
   setCourses: (courses: Course[]) => void;
   addCourse: (course: Course) => void;
   loadCourses: () => Promise<void>;
-  selectCourse: (courseId: string) => void;
+  loadCourseChapters: (courseId: string) => Promise<void>;
+  selectCourse: (courseId: string) => Promise<void>;
   selectChapter: (chapter: Chapter | null) => void;
   selectLesson: (lesson: Lesson | null) => void;
   updateLessonStatus: (lessonId: string, status: Lesson['status']) => void;
@@ -90,9 +91,41 @@ export const useCourseStore = create<CourseStore>((set, get) => ({
     }
   },
 
-  selectCourse: (courseId) => {
+  loadCourseChapters: async (courseId) => {
+    try {
+      const chapters = await tauriService.getChaptersByCourse(courseId);
+      const chaptersWithLessons = await Promise.all(
+        chapters.map(async (chapter) => {
+          const lessons = await tauriService.getLessonsByChapter(chapter.id);
+          return { ...chapter, lessons };
+        })
+      );
+
+      set((state) => {
+        const currentCourse = state.courses.find((c) => c.id === courseId);
+        if (currentCourse) {
+          return {
+            courses: state.courses.map((c) =>
+              c.id === courseId ? { ...c, chapters: chaptersWithLessons } : c
+            ),
+            currentCourse: { ...currentCourse, chapters: chaptersWithLessons },
+          };
+        }
+        return state;
+      });
+    } catch (error) {
+      console.error('Failed to load course chapters:', error);
+    }
+  },
+
+  selectCourse: async (courseId) => {
     const course = get().courses.find((c) => c.id === courseId);
-    set({ currentCourse: course || null, currentChapter: null, currentLesson: null });
+    if (course) {
+      set({ currentCourse: course, currentChapter: null, currentLesson: null });
+      await get().loadCourseChapters(courseId);
+    } else {
+      set({ currentCourse: null, currentChapter: null, currentLesson: null });
+    }
   },
 
   selectChapter: (chapter) => set({ currentChapter: chapter }),
