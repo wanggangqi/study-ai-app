@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 
-type AdminMode = 'login' | 'set-password' | 'init-signing-key' | 'generate';
+type AdminMode = 'init-signing-key' | 'generate';
 
 interface AdminPanelProps {
   isOpen: boolean;
@@ -17,10 +17,7 @@ interface SigningKeyInfo {
 }
 
 export const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
-  const [mode, setMode] = useState<AdminMode>('login');
-  const [password, setPassword] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [mode, setMode] = useState<AdminMode>('generate');
   const [machineHash, setMachineHash] = useState('');
   const [expireDate, setExpireDate] = useState('');
   const [generatedKey, setGeneratedKey] = useState('');
@@ -32,39 +29,25 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
   const [verifyKeyInput, setVerifyKeyInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  // 加载管理员密码状态和机器码
+  // 加载机器码
   useEffect(() => {
     if (isOpen) {
-      checkAdminPasswordStatus();
+      checkSigningKeyStatus();
       loadMachineHash();
     }
   }, [isOpen]);
-
-  // 检查签名密钥状态
-  useEffect(() => {
-    if (mode === 'generate') {
-      checkSigningKeyStatus();
-    }
-  }, [mode]);
-
-  const checkAdminPasswordStatus = async () => {
-    try {
-      const isSet = await invoke<boolean>('is_admin_password_set_command');
-      setMode(isSet ? 'login' : 'set-password');
-    } catch (err) {
-      console.error('Failed to check admin password:', err);
-      setMode('set-password');
-    }
-  };
 
   const checkSigningKeyStatus = async () => {
     try {
       const isSet = await invoke<boolean>('is_signing_key_set_command');
       if (!isSet) {
         setMode('init-signing-key');
+      } else {
+        setMode('generate');
       }
     } catch (err) {
       console.error('Failed to check signing key:', err);
+      setMode('init-signing-key');
     }
   };
 
@@ -74,46 +57,6 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
       setMachineHash(hash);
     } catch (err) {
       console.error('Failed to get machine hash:', err);
-    }
-  };
-
-  const handleVerifyPassword = async () => {
-    if (!password) return;
-    setError('');
-    try {
-      const isValid = await invoke<boolean>('verify_admin_password_command', { password });
-      if (isValid) {
-        setMode('generate');
-        setPassword('');
-      } else {
-        setError('密码错误');
-      }
-    } catch (err) {
-      setError('验证失败');
-    }
-  };
-
-  const handleSetPassword = async () => {
-    if (!newPassword || !confirmPassword) {
-      setError('请填写所有字段');
-      return;
-    }
-    if (newPassword !== confirmPassword) {
-      setError('两次输入的密码不一致');
-      return;
-    }
-    if (newPassword.length < 6) {
-      setError('密码长度至少6位');
-      return;
-    }
-    setError('');
-    try {
-      await invoke('set_admin_password_command', { password: newPassword });
-      setMode('generate');
-      setNewPassword('');
-      setConfirmPassword('');
-    } catch (err) {
-      setError('设置密码失败');
     }
   };
 
@@ -196,9 +139,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
   };
 
   const handleClose = () => {
-    setPassword('');
-    setNewPassword('');
-    setConfirmPassword('');
+    setMachineHash('');
+    setExpireDate('');
     setGeneratedKey('');
     setError('');
     setCopied(false);
@@ -223,61 +165,11 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
             </button>
           </div>
           <CardDescription>
-            {mode === 'login' && '请输入管理员密码'}
-            {mode === 'set-password' && '首次使用，请设置管理员密码'}
             {mode === 'init-signing-key' && '初始化签名密钥'}
             {mode === 'generate' && '生成用户激活密钥'}
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {mode === 'login' && (
-            <div className="space-y-4">
-              <div>
-                <label className="text-sm font-medium">管理员密码</label>
-                <Input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="输入密码"
-                  className="mt-1"
-                />
-              </div>
-              {error && <p className="text-sm text-red-500">{error}</p>}
-              <Button onClick={handleVerifyPassword} className="w-full">
-                确认
-              </Button>
-            </div>
-          )}
-
-          {mode === 'set-password' && (
-            <div className="space-y-4">
-              <div>
-                <label className="text-sm font-medium">新密码</label>
-                <Input
-                  type="password"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  placeholder="输入新密码"
-                  className="mt-1"
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium">确认密码</label>
-                <Input
-                  type="password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="再次输入新密码"
-                  className="mt-1"
-                />
-              </div>
-              {error && <p className="text-sm text-red-500">{error}</p>}
-              <Button onClick={handleSetPassword} className="w-full">
-                设置密码
-              </Button>
-            </div>
-          )}
-
           {mode === 'init-signing-key' && (
             <div className="space-y-4">
               <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg text-sm">

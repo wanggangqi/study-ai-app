@@ -37,6 +37,7 @@ export const AuthPage: React.FC = () => {
         setAuthorized(status.expire_at, machineId);
         navigate('/setup');
       }
+      // 没license就停留在授权页面
     } catch (err) {
       console.error('Failed to check license status:', err);
     }
