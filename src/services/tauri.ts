@@ -51,11 +51,11 @@ const transformCourse = (data: BackendCourse): Course => ({
 // Tauri 命令调用封装
 export const tauriService = {
   async validateLicense(key: string): Promise<boolean> {
-    return invoke('validate_license', { key });
+    return invoke('validate_license_command', { key });
   },
 
   async getMachineId(): Promise<string> {
-    return invoke('get_machine_id');
+    return invoke('get_machine_id_command');
   },
 
   async checkGitInstalled(): Promise<boolean> {
@@ -63,41 +63,42 @@ export const tauriService = {
   },
 
   async setGitConfig(username: string, email: string): Promise<void> {
-    return invoke('set_git_config', { username, email });
+    await invoke('set_git_username', { username });
+    await invoke('set_git_email', { email });
   },
 
   async createGiteeRepo(name: string, description: string): Promise<string> {
-    return invoke('create_gitee_repo', { name, description });
+    return invoke('create_gitee_repo_command', { name, description });
   },
 
   async cloneRepo(url: string, path: string): Promise<void> {
-    return invoke('clone_repo', { url, path });
+    return invoke('git_clone_command', { url, path });
   },
 
   async getCourses(): Promise<Course[]> {
-    const data = await invoke<BackendCourse[]>('get_all_courses');
+    const data = await invoke<BackendCourse[]>('get_all_courses_command');
     return data.map(transformCourse);
   },
 
   async saveCourse(course: object): Promise<void> {
-    return invoke('save_course', { course });
+    return invoke('create_course_command', { course });
   },
 
   // 课时状态相关
   async updateLessonStatus(lessonId: string, status: LessonStatus): Promise<void> {
-    return invoke('update_lesson_status', { id: lessonId, status });
+    return invoke('update_lesson_status_command', { id: lessonId, status });
   },
 
   async getLessonsByChapter(chapterId: string): Promise<object[]> {
-    return invoke('get_lessons_by_chapter', { chapterId });
+    return invoke('get_lessons_by_chapter_command', { chapterId });
   },
 
   async getLessonById(lessonId: string): Promise<object> {
-    return invoke('get_lesson_by_id', { id: lessonId });
+    return invoke('get_lesson_by_id_command', { id: lessonId });
   },
 
   // 练习题相关
   async updateExerciseScore(exerciseId: string, score: number): Promise<void> {
-    return invoke('update_exercise_score', { id: exerciseId, score, resultFile: null });
+    return invoke('update_exercise_score_command', { id: exerciseId, score, resultFile: null });
   },
 };

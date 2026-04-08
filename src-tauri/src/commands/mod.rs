@@ -33,6 +33,15 @@ pub use auth::{
     get_machine_hash_command,
     validate_license_command,
     get_license_status_command,
+    generate_license_key_command,
+    is_admin_password_set_command,
+    set_admin_password_command,
+    verify_admin_password_command,
+    change_admin_password_command,
+    generate_signing_key_pair_command,
+    set_signing_key_command,
+    is_signing_key_set_command,
+    SigningKeyInfo,
     LicenseResult,
 };
 
@@ -68,6 +77,7 @@ pub use database::{
 
 pub use git::{
     check_git_status,
+    check_git_installed,
     get_git_config,
     set_git_username,
     set_git_email,

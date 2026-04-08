@@ -43,6 +43,12 @@ pub fn check_git_status() -> GitStatus {
     GitStatus { installed, version }
 }
 
+/// 检查 Git 是否已安装
+#[tauri::command]
+pub fn check_git_installed() -> bool {
+    is_git_installed()
+}
+
 /// 获取 Git 配置
 #[tauri::command]
 pub fn get_git_config() -> GitConfig {

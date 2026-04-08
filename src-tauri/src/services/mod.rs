@@ -9,8 +9,17 @@ pub mod git_ops;
 pub mod ai;
 
 pub use machine_id::{get_machine_id, get_machine_hash, MachineIdError};
-pub use crypto::{encrypt_data, decrypt_data, CryptoError};
-pub use license::{validate_license, get_license_status, LicenseStatus, LicenseError};
+pub use crypto::{
+    encrypt_data, decrypt_data, CryptoError,
+    sign_data, verify_signature as crypto_verify_signature, generate_keypair,
+    signing_key_to_base64, verify_key_to_base64,
+    signing_key_from_base64, verify_key_from_base64,
+};
+pub use license::{
+    validate_license, get_license_status, LicenseStatus, LicenseError,
+    is_admin_password_set, set_admin_password, verify_admin_password, change_admin_password,
+    get_signing_key,
+};
 pub use git_ops::{
     is_git_installed,
     get_git_version,

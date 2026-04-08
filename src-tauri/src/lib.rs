@@ -15,6 +15,14 @@ use commands::{
     get_machine_hash_command,
     validate_license_command,
     get_license_status_command,
+    is_admin_password_set_command,
+    set_admin_password_command,
+    verify_admin_password_command,
+    change_admin_password_command,
+    generate_license_key_command,
+    generate_signing_key_pair_command,
+    set_signing_key_command,
+    is_signing_key_set_command,
     // 数据库状态
     database::DbState,
     // Course 操作
@@ -50,6 +58,7 @@ use commands::{
     get_user_config,
     update_user_config,
     // Git 命令
+    check_git_installed,
     check_git_status,
     get_git_config,
     set_git_username,
@@ -106,6 +115,14 @@ pub fn run() {
             get_machine_hash_command,
             validate_license_command,
             get_license_status_command,
+            is_admin_password_set_command,
+            set_admin_password_command,
+            verify_admin_password_command,
+            change_admin_password_command,
+            generate_license_key_command,
+            generate_signing_key_pair_command,
+            set_signing_key_command,
+            is_signing_key_set_command,
             // 数据库相关命令 - Course
             create_course,
             get_all_courses,
@@ -139,6 +156,7 @@ pub fn run() {
             get_user_config,
             update_user_config,
             // Git 相关命令
+            check_git_installed,
             check_git_status,
             get_git_config,
             set_git_username,

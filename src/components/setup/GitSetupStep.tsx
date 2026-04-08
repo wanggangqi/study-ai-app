@@ -34,7 +34,8 @@ export const GitSetupStep: React.FC<SetupStepProps> = ({ onNext, onBack }) => {
     }
 
     try {
-      await invoke('set_git_config', { username, email });
+      await invoke('set_git_username', { username });
+      await invoke('set_git_email', { email });
       setConfig({ gitUsername: username, gitEmail: email });
       onNext();
     } catch (error) {

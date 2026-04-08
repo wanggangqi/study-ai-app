@@ -23,6 +23,15 @@ pub enum CryptoError {
 
     #[error("Invalid data format")]
     InvalidDataFormat,
+
+    #[error("Signing failed: {0}")]
+    SigningError(String),
+
+    #[error("Verification failed: {0}")]
+    VerificationError(String),
+
+    #[error("Invalid signature format")]
+    InvalidSignatureFormat,
 }
 
 /// AES-256-GCM 加密
@@ -122,6 +131,102 @@ pub fn generate_salt() -> [u8; 16] {
     let mut salt = [0u8; 16];
     OsRng.fill_bytes(&mut salt);
     salt
+}
+
+// ============================================================================
+// Ed25519 签名相关
+// ============================================================================
+
+pub use ed25519_dalek::{Signature, Signer, SigningKey, VerifyingKey};
+
+/// Ed25519 签名数据
+///
+/// 返回格式：Base64(JSON) | Base64(签名)
+pub fn sign_data(data: &[u8], signing_key: &SigningKey) -> Result<String, CryptoError> {
+    let signature = signing_key.sign(data);
+
+    // 将数据和签名组合
+    let combined = format!("{}|{}", BASE64.encode(data), BASE64.encode(signature.to_bytes()));
+
+    Ok(combined)
+}
+
+/// Ed25519 验签
+///
+/// 输入格式：Base64(JSON) | Base64(签名)
+pub fn verify_signature(combined_data: &str, verify_key: &VerifyingKey) -> Result<Vec<u8>, CryptoError> {
+    let parts: Vec<&str> = combined_data.split('|').collect();
+    if parts.len() != 2 {
+        return Err(CryptoError::InvalidSignatureFormat);
+    }
+
+    let data = BASE64.decode(parts[0])
+        .map_err(|_| CryptoError::InvalidDataFormat)?;
+
+    let signature_bytes = BASE64.decode(parts[1])
+        .map_err(|_| CryptoError::InvalidDataFormat)?;
+
+    if signature_bytes.len() != 64 {
+        return Err(CryptoError::InvalidSignatureFormat);
+    }
+
+    // 将 Vec<u8> 转换为 [u8; 64]
+    let mut signature_arr = [0u8; 64];
+    signature_arr.copy_from_slice(&signature_bytes);
+    let signature = Signature::from_bytes(&signature_arr);
+
+    verify_key.verify_strict(&data, &signature)
+        .map_err(|_| CryptoError::VerificationError("Signature verification failed".to_string()))?;
+
+    Ok(data)
+}
+
+/// 生成新的 Ed25519 密钥对
+pub fn generate_keypair() -> (SigningKey, VerifyingKey) {
+    let signing_key = SigningKey::generate(&mut OsRng);
+    let verify_key = signing_key.verifying_key();
+    (signing_key, verify_key)
+}
+
+/// 将签名密钥序列化为 Base64 字符串
+pub fn signing_key_to_base64(key: &SigningKey) -> String {
+    BASE64.encode(key.as_bytes())
+}
+
+/// 将验签密钥序列化为 Base64 字符串
+pub fn verify_key_to_base64(key: &VerifyingKey) -> String {
+    BASE64.encode(key.as_bytes())
+}
+
+/// 从 Base64 字符串反序列化为签名密钥
+pub fn signing_key_from_base64(s: &str) -> Result<SigningKey, CryptoError> {
+    let bytes = BASE64.decode(s)
+        .map_err(|_| CryptoError::InvalidDataFormat)?;
+
+    if bytes.len() != 32 {
+        return Err(CryptoError::InvalidKeyLength);
+    }
+
+    // 将 Vec<u8> 转换为 [u8; 32]
+    let mut key_arr = [0u8; 32];
+    key_arr.copy_from_slice(&bytes);
+    Ok(SigningKey::from_bytes(&key_arr))
+}
+
+/// 从 Base64 字符串反序列化为验签密钥
+pub fn verify_key_from_base64(s: &str) -> Result<VerifyingKey, CryptoError> {
+    let bytes = BASE64.decode(s)
+        .map_err(|_| CryptoError::InvalidDataFormat)?;
+
+    if bytes.len() != 32 {
+        return Err(CryptoError::InvalidKeyLength);
+    }
+
+    // 将 Vec<u8> 转换为 [u8; 32]
+    let mut key_arr = [0u8; 32];
+    key_arr.copy_from_slice(&bytes);
+    VerifyingKey::from_bytes(&key_arr)
+        .map_err(|_| CryptoError::InvalidKeyLength)
 }
 
 #[cfg(test)]
