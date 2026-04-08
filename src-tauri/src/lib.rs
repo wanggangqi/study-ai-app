@@ -70,6 +70,8 @@ use commands::{
     git_push_command,
     git_pull_command,
     git_has_changes_command,
+    set_git_username_command,
+    set_git_email_command,
     // Gitee 命令
     verify_gitee_account_command,
     create_gitee_repo_command,
@@ -170,6 +172,8 @@ pub fn run() {
             git_push_command,
             git_pull_command,
             git_has_changes_command,
+            set_git_username_command,
+            set_git_email_command,
             // Gitee 相关命令
             verify_gitee_account_command,
             create_gitee_repo_command,

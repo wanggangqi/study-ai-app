@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Button } from '../common/Button';
 import { SetupStepProps } from './SetupWizard';
+import { useConfigStore } from '../../stores/configStore';
 
 const TEACHING_STYLES = [
   {
@@ -43,9 +44,12 @@ const TEACHING_STYLES = [
 
 export const StyleSelectStep: React.FC<SetupStepProps> = ({ onNext, onBack }) => {
   const [selectedStyle, setSelectedStyle] = useState('');
+  const { setConfig, saveConfig } = useConfigStore();
 
-  const handleSubmit = () => {
-    // 风格选择目前只保存 ID，实际存储可以扩展
+  const handleSubmit = async () => {
+    if (!selectedStyle) return;
+    setConfig({ teachingStyle: selectedStyle });
+    await saveConfig();
     onNext();
   };
 
@@ -79,7 +83,7 @@ export const StyleSelectStep: React.FC<SetupStepProps> = ({ onNext, onBack }) =>
         <Button variant="outline" onClick={onBack}>
           上一步
         </Button>
-        <Button onClick={handleSubmit}>
+        <Button onClick={handleSubmit} disabled={!selectedStyle}>
           完成配置
         </Button>
       </div>

@@ -11,6 +11,7 @@ export interface AuthState {
 // 用户配置（与后端 AppConfig 对应）
 export interface UserConfig {
   setupCompleted: boolean;
+  giteeUsername: string;
   giteeToken: string;
   workspacePath: string;
   aiProvider: AIProvider;
@@ -18,6 +19,7 @@ export interface UserConfig {
   aiModel: string;
   gitUsername: string;
   gitEmail: string;
+  teachingStyle: string;
 }
 
 // 课程计划（咨询师输出）

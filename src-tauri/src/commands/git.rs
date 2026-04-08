@@ -5,6 +5,7 @@
 use crate::services::git_ops::{
     is_git_installed, get_git_version, init_repo, clone_repo,
     add_all, commit, push, pull, has_changes,
+    set_global_git_username, set_global_git_email,
 };
 use serde::{Deserialize, Serialize};
 
@@ -131,6 +132,36 @@ pub fn git_has_changes_command(path: String) -> GitResult {
         Ok(has) => GitResult {
             success: true,
             message: if has { "有变更" } else { "无变更" }.to_string(),
+        },
+        Err(e) => GitResult {
+            success: false,
+            message: e.to_string(),
+        },
+    }
+}
+
+/// 设置全局 Git 用户名
+#[tauri::command]
+pub fn set_git_username_command(username: String) -> GitResult {
+    match set_global_git_username(&username) {
+        Ok(_) => GitResult {
+            success: true,
+            message: "Git 用户名设置成功".to_string(),
+        },
+        Err(e) => GitResult {
+            success: false,
+            message: e.to_string(),
+        },
+    }
+}
+
+/// 设置全局 Git 邮箱
+#[tauri::command]
+pub fn set_git_email_command(email: String) -> GitResult {
+    match set_global_git_email(&email) {
+        Ok(_) => GitResult {
+            success: true,
+            message: "Git 邮箱设置成功".to_string(),
         },
         Err(e) => GitResult {
             success: false,

@@ -12,6 +12,7 @@ interface ConfigStore extends UserConfig {
 
 const defaultConfig: UserConfig = {
   setupCompleted: false,
+  giteeUsername: '',
   giteeToken: '',
   workspacePath: '',
   aiProvider: 'claude',
@@ -19,6 +20,7 @@ const defaultConfig: UserConfig = {
   aiModel: '',
   gitUsername: '',
   gitEmail: '',
+  teachingStyle: '',
 };
 
 export const useConfigStore = create<ConfigStore>((set, get) => ({
@@ -32,20 +34,26 @@ export const useConfigStore = create<ConfigStore>((set, get) => ({
       set({ isLoading: true });
       const config = await invoke<{
         setup_completed: boolean;
+        gitee_username: string | null;
         gitee_token: string | null;
         workspace_path: string | null;
         ai_provider: string | null;
         ai_api_key: string | null;
         ai_model: string | null;
+        git_username: string | null;
+        git_email: string | null;
       }>('get_config_command');
 
       set({
         setupCompleted: config.setup_completed,
+        giteeUsername: config.gitee_username || '',
         giteeToken: config.gitee_token || '',
         workspacePath: config.workspace_path || '',
         aiProvider: (config.ai_provider as UserConfig['aiProvider']) || 'claude',
         aiApiKey: config.ai_api_key || '',
         aiModel: config.ai_model || '',
+        gitUsername: config.git_username || '',
+        gitEmail: config.git_email || '',
         isLoading: false,
       });
     } catch (error) {
@@ -60,11 +68,14 @@ export const useConfigStore = create<ConfigStore>((set, get) => ({
       await invoke('set_config_command', {
         config: {
           setup_completed: state.setupCompleted,
+          gitee_username: state.giteeUsername || null,
           gitee_token: state.giteeToken || null,
           workspace_path: state.workspacePath || null,
           ai_provider: state.aiProvider || null,
           ai_api_key: state.aiApiKey || null,
           ai_model: state.aiModel || null,
+          git_username: state.gitUsername || null,
+          git_email: state.gitEmail || null,
         },
       });
     } catch (error) {

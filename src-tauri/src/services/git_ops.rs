@@ -263,3 +263,25 @@ pub fn set_repo_git_config(path: &str, username: &str, email: &str) -> Result<()
 
     Ok(())
 }
+
+/// 设置全局 Git 用户名（git config --global）
+pub fn set_global_git_username(username: &str) -> Result<(), GitError> {
+    let output = run_git_command_internal(&["config", "--global", "user.name", username], None)?;
+    if !output.status.success() {
+        return Err(GitError::ConfigError(
+            String::from_utf8_lossy(&output.stderr).to_string()
+        ));
+    }
+    Ok(())
+}
+
+/// 设置全局 Git 邮箱（git config --global）
+pub fn set_global_git_email(email: &str) -> Result<(), GitError> {
+    let output = run_git_command_internal(&["config", "--global", "user.email", email], None)?;
+    if !output.status.success() {
+        return Err(GitError::ConfigError(
+            String::from_utf8_lossy(&output.stderr).to_string()
+        ));
+    }
+    Ok(())
+}

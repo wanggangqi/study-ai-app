@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { invoke } from '@tauri-apps/api/core';
 import { useConfigStore } from '../../stores/configStore';
 import { Input } from '../common/Input';
 import { Button } from '../common/Button';
@@ -37,6 +38,24 @@ export const AISetupStep: React.FC<SetupStepProps> = ({ onNext, onBack }) => {
     setError('');
 
     try {
+      // 验证 API 密钥
+      const result = await invoke<{
+        success: boolean;
+        data?: string;
+        error?: string;
+      }>('ai_verify_key_command', {
+        params: {
+          provider: selectedProvider,
+          api_key: apiKey,
+        },
+      });
+
+      if (!result.success || result.data === 'invalid') {
+        setError('API 密钥验证失败，请检查配置是否正确');
+        setIsValidating(false);
+        return;
+      }
+
       setConfig({
         aiProvider: selectedProvider as any,
         aiApiKey: apiKey,
@@ -45,7 +64,7 @@ export const AISetupStep: React.FC<SetupStepProps> = ({ onNext, onBack }) => {
       await saveConfig();
       onNext();
     } catch (err) {
-      setError('配置保存失败');
+      setError('API 密钥验证失败，请检查配置');
     } finally {
       setIsValidating(false);
     }

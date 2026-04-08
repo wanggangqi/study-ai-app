@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { invoke } from '@tauri-apps/api/core';
 import { useConfigStore } from '../../stores/configStore';
 import { Input } from '../common/Input';
 import { Button } from '../common/Button';
@@ -19,12 +20,28 @@ export const GiteeSetupStep: React.FC<SetupStepProps> = ({ onNext, onBack }) => 
     setError('');
 
     try {
-      // 保存 token 到配置文件
-      setConfig({ giteeToken: token });
+      // 验证码云账户
+      const result = await invoke<{
+        success: boolean;
+        username?: string;
+        message: string;
+      }>('verify_gitee_account_command', { token });
+
+      if (!result.success) {
+        setError(result.message || '验证码云账户失败，请检查令牌');
+        setIsValidating(false);
+        return;
+      }
+
+      // 保存用户名和 token
+      setConfig({
+        giteeUsername: result.username || '',
+        giteeToken: token,
+      });
       await saveConfig();
       onNext();
     } catch (err) {
-      setError('保存失败，请重试');
+      setError('验证码云账户失败，请检查令牌是否正确');
     } finally {
       setIsValidating(false);
     }

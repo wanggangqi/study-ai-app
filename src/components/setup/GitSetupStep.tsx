@@ -34,7 +34,10 @@ export const GitSetupStep: React.FC<SetupStepProps> = ({ onNext, onBack }) => {
     }
 
     try {
-      // 保存到配置文件，初始化仓库时会设置为项目级别的 git 配置
+      // 调用 Rust 命令设置 git 全局配置
+      await invoke('set_git_username_command', { username });
+      await invoke('set_git_email_command', { email });
+      // 同时保存到 configStore
       setConfig({ gitUsername: username, gitEmail: email });
       await saveConfig();
       onNext();

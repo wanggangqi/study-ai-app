@@ -24,6 +24,8 @@ pub enum ConfigError {
 pub struct AppConfig {
     /// 是否已完成初始设置
     pub setup_completed: bool,
+    /// 码云用户名
+    pub gitee_username: Option<String>,
     /// 码云访问令牌
     pub gitee_token: Option<String>,
     /// 本地工作空间路径
@@ -34,6 +36,10 @@ pub struct AppConfig {
     pub ai_api_key: Option<String>,
     /// AI 模型
     pub ai_model: Option<String>,
+    /// Git 用户名
+    pub git_username: Option<String>,
+    /// Git 邮箱
+    pub git_email: Option<String>,
 }
 
 /// 获取配置文件路径
@@ -83,6 +89,9 @@ pub fn save_config(config: &AppConfig) -> Result<(), ConfigError> {
 pub fn update_config(updates: AppConfig) -> Result<AppConfig, ConfigError> {
     let mut config = load_config()?;
 
+    if let Some(v) = updates.gitee_username {
+        config.gitee_username = Some(v);
+    }
     if let Some(v) = updates.gitee_token {
         config.gitee_token = Some(v);
     }
@@ -97,6 +106,12 @@ pub fn update_config(updates: AppConfig) -> Result<AppConfig, ConfigError> {
     }
     if let Some(v) = updates.ai_model {
         config.ai_model = Some(v);
+    }
+    if let Some(v) = updates.git_username {
+        config.git_username = Some(v);
+    }
+    if let Some(v) = updates.git_email {
+        config.git_email = Some(v);
     }
     config.setup_completed = updates.setup_completed;
 

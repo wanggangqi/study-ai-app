@@ -85,6 +85,8 @@ pub use git::{
     git_push_command,
     git_pull_command,
     git_has_changes_command,
+    set_git_username_command,
+    set_git_email_command,
     GitStatus,
     GitResult,
 };
