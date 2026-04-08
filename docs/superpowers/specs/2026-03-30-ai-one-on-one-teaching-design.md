@@ -667,7 +667,14 @@ study-ai-app/
 | `create_gitee_repo` | `name: String, description: String` | `GiteeRepo` | 创建码云仓库 |
 | `check_gitee_repo_exists` | `owner: String, repo: String` | `bool` | 检查仓库是否存在 |
 
-### 10.9 AI 相关命令
+### 10.9 同步相关命令
+
+| 命令名 | 参数 | 返回值 | 说明 |
+|--------|------|--------|------|
+| `sync_course_to_git_command` | `course_id: String` | `SyncResult` | 同步课程数据到 Git 仓库 |
+| `create_course_repository_command` | `course_id: String` | `SyncResult` | 创建课程仓库（本地 + 码云） |
+
+### 10.10 AI 相关命令
 
 | 命令名 | 参数 | 返回值 | 说明 |
 |--------|------|--------|------|
