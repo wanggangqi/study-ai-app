@@ -96,4 +96,13 @@ export const tauriService = {
   async updateExerciseScore(exerciseId: string, score: number): Promise<void> {
     return invoke('update_exercise_score_command', { id: exerciseId, score, resultFile: null });
   },
+
+  // 码云同步相关
+  async syncCourseToGitee(courseId: string): Promise<{ success: boolean; message: string; repoUrl?: string }> {
+    return invoke('sync_course_to_git_command', { courseId });
+  },
+
+  async createCourseRepository(courseId: string): Promise<{ success: boolean; message: string; repoUrl?: string }> {
+    return invoke('create_course_repository_command', { courseId });
+  },
 };
