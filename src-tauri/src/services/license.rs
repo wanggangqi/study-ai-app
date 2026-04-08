@@ -65,28 +65,12 @@ pub struct LicenseStatus {
 
 /// 获取授权状态文件路径
 fn get_license_file_path() -> PathBuf {
-    let app_dir = dirs::data_local_dir()
-        .unwrap_or_else(|| PathBuf::from("."))
-        .join("StudyMate");
-
-    if !app_dir.exists() {
-        fs::create_dir_all(&app_dir).ok();
-    }
-
-    app_dir.join("license.dat")
+    get_local_data_dir().join("license.dat")
 }
 
 /// 获取密钥文件路径
 fn get_key_file_path() -> PathBuf {
-    let app_dir = dirs::data_local_dir()
-        .unwrap_or_else(|| PathBuf::from("."))
-        .join("StudyMate");
-
-    if !app_dir.exists() {
-        fs::create_dir_all(&app_dir).ok();
-    }
-
-    app_dir.join("key.dat")
+    get_local_data_dir().join("key.dat")
 }
 
 /// 获取 localData 目录路径
