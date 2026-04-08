@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { invoke } from '@tauri-apps/api/core';
 import { Sidebar } from '../components/common/Sidebar';
 import { Card } from '../components/common/Card';
 import { Input } from '../components/common/Input';
@@ -23,9 +24,25 @@ const aiProviders = [
   { id: 'kimi' as AIProvider, name: 'Kimi (Moonshot)', baseUrl: 'https://api.moonshot.cn' },
 ];
 
+const teachingStyles = [
+  { id: 'academic', name: '严谨学术型', icon: '📚' },
+  { id: 'practical', name: '实战应用型', icon: '💻' },
+  { id: 'story', name: '轻松故事型', icon: '📖' },
+  { id: 'progressive', name: '循序渐进型', icon: '🎓' },
+  { id: 'explorative', name: '启发探索型', icon: '🔍' },
+  { id: 'efficient', name: '快速高效型', icon: '⚡' },
+];
+
 export const SettingsPage: React.FC = () => {
   const navigate = useNavigate();
-  const { aiProvider, aiApiKey, aiModel, setConfig } = useConfigStore();
+  const {
+    aiProvider, aiApiKey, aiModel,
+    gitUsername, gitEmail,
+    giteeUsername, giteeToken,
+    teachingStyle,
+    setConfig, saveConfig,
+  } = useConfigStore();
+
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null);
 
@@ -40,22 +57,38 @@ export const SettingsPage: React.FC = () => {
     setTesting(true);
     setTestResult(null);
 
-    // TODO: Phase 4 实现实际的连接测试
-    // 暂时模拟测试过程
-    setTimeout(() => {
+    try {
+      const result = await invoke<{
+        success: boolean;
+        data?: string;
+        error?: string;
+      }>('ai_verify_key_command', {
+        params: { provider: aiProvider, api_key: aiApiKey },
+      });
+
+      if (result.success && result.data !== 'invalid') {
+        setTestResult({ success: true, message: 'API 密钥验证通过' });
+      } else {
+        setTestResult({ success: false, message: result.error || 'API 密钥验证失败' });
+      }
+    } catch (err) {
+      setTestResult({ success: false, message: '连接测试失败' });
+    } finally {
       setTesting(false);
-      setTestResult({ success: true, message: '连接测试成功！（Phase 4 将实现真实测试）' });
-    }, 1500);
+    }
   };
 
-  const handleSave = () => {
-    // TODO: Phase 2 实现实际的保存逻辑
-    console.log('保存配置:', { aiProvider, aiApiKey, aiModel });
-    alert('配置已保存！（Phase 2 将实现持久化）');
+  const handleSave = async () => {
+    try {
+      await saveConfig();
+      alert('配置已保存');
+    } catch (err) {
+      console.error('Failed to save config:', err);
+      alert('保存失败');
+    }
   };
 
   const handleCancel = () => {
-    // TODO: Phase 2 实现重置逻辑
     navigate('/');
   };
 
@@ -67,6 +100,7 @@ export const SettingsPage: React.FC = () => {
         <h1 className="text-2xl font-bold text-primary mb-8">设置</h1>
 
         <div className="max-w-2xl space-y-6">
+          {/* AI 服务配置 */}
           <Card>
             <h2 className="font-bold mb-4">AI 服务配置</h2>
             <div className="space-y-4">
@@ -119,11 +153,63 @@ export const SettingsPage: React.FC = () => {
             </div>
           </Card>
 
+          {/* Git 配置 */}
           <Card>
             <h2 className="font-bold mb-4">Git 配置</h2>
             <div className="space-y-4">
-              <Input label="Git 用户名" placeholder="你的 Git 用户名" />
-              <Input label="Git 邮箱" placeholder="你的 Git 邮箱" />
+              <Input
+                label="Git 用户名"
+                placeholder="你的 Git 用户名"
+                value={gitUsername}
+                onChange={(e) => setConfig({ gitUsername: e.target.value })}
+              />
+              <Input
+                label="Git 邮箱"
+                placeholder="你的 Git 邮箱"
+                value={gitEmail}
+                onChange={(e) => setConfig({ gitEmail: e.target.value })}
+              />
+            </div>
+          </Card>
+
+          {/* 码云配置 */}
+          <Card>
+            <h2 className="font-bold mb-4">码云配置</h2>
+            <div className="space-y-4">
+              <Input
+                label="码云用户名"
+                placeholder="你的码云用户名"
+                value={giteeUsername}
+                onChange={(e) => setConfig({ giteeUsername: e.target.value })}
+              />
+              <Input
+                label="码云访问令牌"
+                type="password"
+                placeholder="你的码云个人访问令牌"
+                value={giteeToken}
+                onChange={(e) => setConfig({ giteeToken: e.target.value })}
+              />
+            </div>
+          </Card>
+
+          {/* 教学风格 */}
+          <Card>
+            <h2 className="font-bold mb-4">教学风格</h2>
+            <div className="grid grid-cols-3 gap-3">
+              {teachingStyles.map((style) => (
+                <button
+                  key={style.id}
+                  onClick={() => setConfig({ teachingStyle: style.id })}
+                  className={`p-3 rounded-lg border-2 text-center transition-all ${
+                    teachingStyle === style.id
+                      ? 'border-primary bg-primary/5'
+                      : 'border-gray-200 hover:border-gray-300'
+                  }`}
+                >
+                  <span className="text-2xl">{style.icon}</span>
+                  <span className="block mt-1 text-sm">{style.name}</span>
+                </button>
+              ))}
             </div>
           </Card>
 
