@@ -341,3 +341,61 @@ pub fn update_user_config_command(
     operations::update_user_config(&conn, gitee_username, gitee_token, workspace_path, ai_provider, ai_api_key, ai_model, git_username, git_email)
         .map_err(|e| DbCommandError::from(e))
 }
+
+// ==================== Batch Chapter/Lesson Commands ====================
+
+/// 批量创建章节和课时的参数
+#[derive(Debug, serde::Serialize, serde::Deserialize)]
+pub struct CreateChaptersWithLessonsParams {
+    pub course_id: String,
+    pub chapters: Vec<ChapterWithLessonsParams>,
+}
+
+#[derive(Debug, serde::Serialize, serde::Deserialize)]
+pub struct ChapterWithLessonsParams {
+    pub chapter_index: i32,
+    pub chapter_name: String,
+    pub lessons: Vec<LessonParams>,
+}
+
+#[derive(Debug, serde::Serialize, serde::Deserialize)]
+pub struct LessonParams {
+    pub lesson_index: i32,
+    pub lesson_name: String,
+    pub duration: String,
+}
+
+/// 批量创建章节和课时命令
+#[tauri::command]
+pub fn create_chapters_with_lessons_command(
+    state: State<DbState>,
+    params: CreateChaptersWithLessonsParams,
+) -> DbResult<Vec<Chapter>> {
+    let db = state.0.lock().unwrap();
+    let conn = db.get_connection();
+
+    let mut chapters = Vec::new();
+
+    for chapter_params in params.chapters {
+        let chapter = operations::create_chapter(
+            &conn,
+            params.course_id.clone(),
+            chapter_params.chapter_index,
+            chapter_params.chapter_name,
+        ).map_err(|e| DbCommandError::from(e))?;
+
+        for lesson_params in chapter_params.lessons {
+            operations::create_lesson(
+                &conn,
+                chapter.id.clone(),
+                lesson_params.lesson_index,
+                lesson_params.lesson_name,
+                Some(lesson_params.duration),
+            ).map_err(|e| DbCommandError::from(e))?;
+        }
+
+        chapters.push(chapter);
+    }
+
+    Ok(chapters)
+}

@@ -119,4 +119,20 @@ export const tauriService = {
   }): Promise<CoursePlanOutline> {
     return invoke('ai_generate_course_plan_command', { params });
   },
+
+  // 批量创建章节和课时
+  async createChaptersWithLessons(params: {
+    courseId: string;
+    chapters: Array<{
+      chapterIndex: number;
+      chapterName: string;
+      lessons: Array<{
+        lessonIndex: number;
+        lessonName: string;
+        duration: string;
+      }>;
+    }>;
+  }): Promise<any[]> {
+    return invoke('create_chapters_with_lessons_command', { params });
+  },
 };

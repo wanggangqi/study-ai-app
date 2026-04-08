@@ -44,6 +44,28 @@ export const ConsultantPage: React.FC = () => {
       });
 
       if (result?.id) {
+        // 创建章节和课时
+        try {
+          await tauriService.createChaptersWithLessons({
+            courseId: result.id,
+            chapters: coursePlan.chapters.map((ch) => ({
+              chapterIndex: ch.chapterIndex,
+              chapterName: ch.chapterName,
+              lessons: ch.lessons.map((ls) => ({
+                lessonIndex: ls.lessonIndex,
+                lessonName: ls.lessonName,
+                duration: ls.duration,
+              })),
+            })),
+          });
+        } catch (chaptersError) {
+          console.error('创建章节和课时失败:', chaptersError);
+          await message(`课程"${coursePlan.courseName}"创建成功，但创建章节和课时失败。`, {
+            title: '警告',
+            kind: 'warning',
+          });
+        }
+
         // 创建码云仓库
         try {
           const syncResult = await tauriService.createCourseRepository(result.id);

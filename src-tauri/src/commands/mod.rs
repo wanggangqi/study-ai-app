@@ -74,6 +74,7 @@ pub use database::{
     clear_chat_messages_by_course_command,
     get_user_config_command,
     update_user_config_command,
+    create_chapters_with_lessons_command,
 };
 
 pub use git::{

@@ -61,6 +61,8 @@ use commands::{
     // UserConfig 操作
     get_user_config_command,
     update_user_config_command,
+    // Batch Chapter/Lesson 操作
+    create_chapters_with_lessons_command,
     // Git 命令
     check_git_installed_command,
     check_git_status_command,
@@ -167,6 +169,8 @@ pub fn run() {
             // 数据库相关命令 - UserConfig
             get_user_config_command,
             update_user_config_command,
+            // 批量创建章节和课时
+            create_chapters_with_lessons_command,
             // Git 相关命令
             check_git_installed_command,
             check_git_status_command,
