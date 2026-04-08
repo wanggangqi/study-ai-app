@@ -24,13 +24,13 @@ const aiProviders = [
   { id: 'kimi' as AIProvider, name: 'Kimi (Moonshot)', baseUrl: 'https://api.moonshot.cn' },
 ];
 
-const teachingStyles = [
-  { id: 'academic', name: '严谨学术型', icon: '📚' },
-  { id: 'practical', name: '实战应用型', icon: '💻' },
-  { id: 'story', name: '轻松故事型', icon: '📖' },
-  { id: 'progressive', name: '循序渐进型', icon: '🎓' },
-  { id: 'explorative', name: '启发探索型', icon: '🔍' },
-  { id: 'efficient', name: '快速高效型', icon: '⚡' },
+const builtInTeachingStyles = [
+  { id: 'academic', name: '严谨学术型', icon: '📚', description: '结构严谨、概念清晰，适合系统学习' },
+  { id: 'practical', name: '实战应用型', icon: '💻', description: '案例驱动、边学边做，强调动手实践' },
+  { id: 'story', name: '轻松故事型', icon: '📖', description: '故事/比喻引导，语言轻松有趣' },
+  { id: 'progressive', name: '循序渐进型', icon: '🎓', description: '小步前进、充分练习，打牢基础' },
+  { id: 'explorative', name: '启发探索型', icon: '🔍', description: '提问引导、独立思考，培养能力' },
+  { id: 'efficient', name: '快速高效型', icon: '⚡', description: '精炼要点、直奔目标，高效学习' },
 ];
 
 export const SettingsPage: React.FC = () => {
@@ -45,8 +45,12 @@ export const SettingsPage: React.FC = () => {
 
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null);
+  const [customStyleDesc, setCustomStyleDesc] = useState('');
 
   const currentProvider = aiProviders.find(p => p.id === aiProvider);
+
+  // 判断是否为自定义风格
+  const isCustomStyle = teachingStyle.startsWith('custom:');
 
   const handleTestConnection = async () => {
     if (!aiApiKey) {
@@ -75,6 +79,24 @@ export const SettingsPage: React.FC = () => {
       setTestResult({ success: false, message: '连接测试失败' });
     } finally {
       setTesting(false);
+    }
+  };
+
+  const handleStyleSelect = (styleId: string) => {
+    if (styleId === 'custom') {
+      // 选择自定义风格，使用 custom: 前缀
+      const customId = customStyleDesc ? `custom:${customStyleDesc}` : 'custom:';
+      setConfig({ teachingStyle: customId });
+    } else {
+      setConfig({ teachingStyle: styleId });
+    }
+  };
+
+  const handleCustomStyleChange = (desc: string) => {
+    setCustomStyleDesc(desc);
+    if (isCustomStyle) {
+      // 如果当前是自定义风格，更新描述
+      setConfig({ teachingStyle: desc ? `custom:${desc}` : 'custom:' });
     }
   };
 
@@ -195,11 +217,11 @@ export const SettingsPage: React.FC = () => {
           {/* 教学风格 */}
           <Card>
             <h2 className="font-bold mb-4">教学风格</h2>
-            <div className="grid grid-cols-3 gap-3">
-              {teachingStyles.map((style) => (
+            <div className="grid grid-cols-3 gap-3 mb-4">
+              {builtInTeachingStyles.map((style) => (
                 <button
                   key={style.id}
-                  onClick={() => setConfig({ teachingStyle: style.id })}
+                  onClick={() => handleStyleSelect(style.id)}
                   className={`p-3 rounded-lg border-2 text-center transition-all ${
                     teachingStyle === style.id
                       ? 'border-primary bg-primary/5'
@@ -207,9 +229,35 @@ export const SettingsPage: React.FC = () => {
                   }`}
                 >
                   <span className="text-2xl">{style.icon}</span>
-                  <span className="block mt-1 text-sm">{style.name}</span>
+                  <span className="block mt-1 text-sm font-medium">{style.name}</span>
                 </button>
               ))}
+            </div>
+
+            {/* 自定义风格 */}
+            <div className="border-2 rounded-lg p-3 mt-4">
+              <div className="flex items-center gap-3 mb-2">
+                <button
+                  onClick={() => handleStyleSelect('custom')}
+                  className={`px-3 py-2 rounded-lg border-2 transition-all ${
+                    isCustomStyle
+                      ? 'border-primary bg-primary/5'
+                      : 'border-gray-200 hover:border-gray-300'
+                  }`}
+                >
+                  ✏️ 自定义风格
+                </button>
+                <span className="text-sm text-gray-500">描述你喜欢的教学风格</span>
+              </div>
+              {isCustomStyle && (
+                <textarea
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 mt-2"
+                  rows={2}
+                  placeholder="例如：喜欢用图表和实例讲解，注重动手实践"
+                  value={customStyleDesc}
+                  onChange={(e) => handleCustomStyleChange(e.target.value)}
+                />
+              )}
             </div>
           </Card>
 

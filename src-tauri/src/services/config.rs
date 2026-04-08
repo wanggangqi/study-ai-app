@@ -40,6 +40,8 @@ pub struct AppConfig {
     pub git_username: Option<String>,
     /// Git 邮箱
     pub git_email: Option<String>,
+    /// 教学风格
+    pub teaching_style: Option<String>,
 }
 
 /// 获取配置文件路径
@@ -112,6 +114,9 @@ pub fn update_config(updates: AppConfig) -> Result<AppConfig, ConfigError> {
     }
     if let Some(v) = updates.git_email {
         config.git_email = Some(v);
+    }
+    if let Some(v) = updates.teaching_style {
+        config.teaching_style = Some(v);
     }
     config.setup_completed = updates.setup_completed;
 

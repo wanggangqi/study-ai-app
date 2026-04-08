@@ -42,6 +42,7 @@ export const useConfigStore = create<ConfigStore>((set, get) => ({
         ai_model: string | null;
         git_username: string | null;
         git_email: string | null;
+        teaching_style: string | null;
       }>('get_config_command');
 
       set({
@@ -54,6 +55,7 @@ export const useConfigStore = create<ConfigStore>((set, get) => ({
         aiModel: config.ai_model || '',
         gitUsername: config.git_username || '',
         gitEmail: config.git_email || '',
+        teachingStyle: config.teaching_style || '',
         isLoading: false,
       });
     } catch (error) {
@@ -76,6 +78,7 @@ export const useConfigStore = create<ConfigStore>((set, get) => ({
           ai_model: state.aiModel || null,
           git_username: state.gitUsername || null,
           git_email: state.gitEmail || null,
+          teaching_style: state.teachingStyle || null,
         },
       });
     } catch (error) {
