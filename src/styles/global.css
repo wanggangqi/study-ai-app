@@ -78,12 +78,34 @@
   --sidebar-ring: #588157;
 }
 
+html, body, #root {
+  height: 100vh;
+  max-height: 100vh;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+}
+
 body {
   font-family: 'Source Han Sans', 'Microsoft YaHei', sans-serif;
   background-color: var(--background);
   color: var(--foreground);
-  margin: 0;
-  padding: 0;
+}
+
+/* 自定义动画 */
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); opacity: 0.3; }
+  50% { transform: scale(1.1); opacity: 0.5; }
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
 }
 
 * {

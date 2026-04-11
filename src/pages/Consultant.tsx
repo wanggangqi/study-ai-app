@@ -104,11 +104,11 @@ export const ConsultantPage: React.FC = () => {
   // 如果有课程计划，显示课程计划确认界面
   if (coursePlan) {
     return (
-      <div className="flex min-h-screen">
+      <div className="h-screen overflow-hidden">
         <Sidebar items={navItems} activePath="/consultant" onNavigate={(path) => navigate(path)} />
 
-        <main className="flex-1 p-8">
-          <h1 className="text-2xl font-bold text-primary mb-8">课程计划已生成</h1>
+        <main className="ml-48 h-full overflow-y-auto p-8">
+          <h1 className="text-2xl font-bold text-[#588157] mb-8">课程计划已生成</h1>
 
           <Card className="max-w-2xl mx-auto">
             <div className="text-center mb-6">
@@ -118,19 +118,19 @@ export const ConsultantPage: React.FC = () => {
 
             <div className="space-y-4 mb-6">
               <div className="flex justify-between items-center py-2 border-b">
-                <span className="text-text-secondary">课程名称</span>
+                <span className="text-[#666666]">课程名称</span>
                 <span className="font-medium">{coursePlan.courseName}</span>
               </div>
               <div className="flex justify-between items-center py-2 border-b">
-                <span className="text-text-secondary">目标水平</span>
+                <span className="text-[#666666]">目标水平</span>
                 <span className="font-medium">{coursePlan.targetLevel}</span>
               </div>
               <div className="flex justify-between items-center py-2 border-b">
-                <span className="text-text-secondary">学习时长</span>
+                <span className="text-[#666666]">学习时长</span>
                 <span className="font-medium">{coursePlan.duration}</span>
               </div>
               <div className="flex justify-between items-center py-2 border-b">
-                <span className="text-text-secondary">教学风格</span>
+                <span className="text-[#666666]">教学风格</span>
                 <span className="font-medium">{coursePlan.teachingStyle}</span>
               </div>
             </div>
@@ -150,11 +150,11 @@ export const ConsultantPage: React.FC = () => {
   }
 
   return (
-    <div className="flex min-h-screen">
+    <div className="h-screen overflow-hidden">
       <Sidebar items={navItems} activePath="/consultant" onNavigate={(path) => navigate(path)} />
 
-      <main className="flex-1 p-8">
-        <h1 className="text-2xl font-bold text-primary mb-8">学习咨询师</h1>
+      <main className="ml-48 h-full overflow-y-auto p-8">
+        <h1 className="text-2xl font-bold text-[#588157] mb-8">学习咨询师</h1>
 
         <Card className="max-w-2xl mx-auto">
           <ConsultantAgent onCoursePlanGenerated={handleCoursePlanGenerated} />

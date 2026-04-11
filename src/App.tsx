@@ -10,18 +10,7 @@ import { LearningPage } from './pages/Learning';
 import { useAuthStore } from './stores/authStore';
 import { useConfigStore } from './stores/configStore';
 import { AdminPanel } from './components/admin/AdminPanel';
-
-const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const isAuthorized = useAuthStore((state) => state.isAuthorized);
-  const expireAt = useAuthStore((state) => state.expireAt);
-  const isValid = isAuthorized && expireAt && new Date(expireAt) > new Date();
-
-  if (!isValid) {
-    return <Navigate to="/auth" replace />;
-  }
-
-  return <>{children}</>;
-};
+import { StartupLoading } from './components/common/StartupLoading';
 
 // 快捷键监听组件
 const AdminShortcutHandler: React.FC<{ onTrigger: () => void }> = ({ onTrigger }) => {
@@ -48,95 +37,99 @@ const AdminShortcutHandler: React.FC<{ onTrigger: () => void }> = ({ onTrigger }
   return null;
 };
 
-// 配置加载组件
-const ConfigLoader: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const loadConfig = useConfigStore((state) => state.loadConfig);
-  const isLoading = useConfigStore((state) => state.isLoading);
-
-  useEffect(() => {
-    loadConfig();
-  }, [loadConfig]);
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="text-4xl mb-4">📚</div>
-          <p className="text-text-secondary">正在加载...</p>
-        </div>
-      </div>
-    );
-  }
-
-  return <>{children}</>;
-};
-
 const App: React.FC = () => {
   const [showAdminPanel, setShowAdminPanel] = useState(false);
-  const setupCompleted = useConfigStore((state) => state.setupCompleted);
+  const [isInitializing, setIsInitializing] = useState(true);
 
+  // 所有 hooks 必须在条件返回之前调用，确保每次渲染 hooks 数量一致
+  const isAuthorized = useAuthStore((state) => state.isAuthorized);
+  const expireAt = useAuthStore((state) => state.expireAt);
+  const setAuthorized = useAuthStore((state) => state.setAuthorized);
+  const setupCompleted = useConfigStore((state) => state.setupCompleted);
+  const loadConfig = useConfigStore((state) => state.loadConfig);
+
+  // openAdminPanel 回调必须在这里定义，不能在条件返回之后
   const openAdminPanel = useCallback(() => {
     setShowAdminPanel(true);
   }, []);
 
+  // 初始化：检查授权状态 + 加载配置
+  useEffect(() => {
+    const initialize = async () => {
+      try {
+        // 获取机器码
+        const machineHash = await invoke<string>('get_machine_hash_command');
+
+        // 检查授权状态
+        const status = await invoke<{ is_licensed: boolean; expire_at?: string; error_message?: string }>('get_license_status_command');
+
+        if (status.is_licensed && status.expire_at) {
+          setAuthorized(status.expire_at, machineHash);
+        }
+
+        // 加载配置
+        await loadConfig();
+      } catch (err) {
+        console.error('Initialization failed:', err);
+      } finally {
+        setIsInitializing(false);
+      }
+    };
+
+    initialize();
+  }, [setAuthorized, loadConfig]);
+
+  // 判断授权是否有效
+  const isAuthValid = isAuthorized && expireAt && new Date(expireAt) > new Date();
+
+  // 初始化期间显示 Loading
+  if (isInitializing) {
+    return <StartupLoading />;
+  }
+
+  // 未授权时，所有路由都重定向到授权页（但保留授权页本身）
+  if (!isAuthValid) {
+    return (
+      <>
+        <Routes>
+          <Route path="/auth" element={<AuthPage />} />
+          <Route path="*" element={<Navigate to="/auth" replace />} />
+        </Routes>
+      </>
+    );
+  }
+
+  // 已授权时的路由
   return (
     <>
       <AdminShortcutHandler onTrigger={openAdminPanel} />
 
-      <ConfigLoader>
-        <Routes>
-          <Route path="/auth" element={<AuthPage />} />
-          <Route
-            path="/setup"
-            element={
-              setupCompleted ? (
-                <Navigate to="/" replace />
-              ) : (
-                <ProtectedRoute>
-                  <SetupPage />
-                </ProtectedRoute>
-              )
-            }
-          />
-          <Route
-            path="/"
-            element={
-              !setupCompleted ? (
-                <Navigate to="/setup" replace />
-              ) : (
-                <ProtectedRoute>
-                  <HomePage />
-                </ProtectedRoute>
-              )
-            }
-          />
-          <Route
-            path="/consultant"
-            element={
-              <ProtectedRoute>
-                <ConsultantPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/settings"
-            element={
-              <ProtectedRoute>
-                <SettingsPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/learning/:courseId"
-            element={
-              <ProtectedRoute>
-                <LearningPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </ConfigLoader>
+      <Routes>
+        <Route
+          path="/setup"
+          element={
+            setupCompleted ? (
+              <Navigate to="/" replace />
+            ) : (
+              <SetupPage />
+            )
+          }
+        />
+        <Route
+          path="/"
+          element={
+            !setupCompleted ? (
+              <Navigate to="/setup" replace />
+            ) : (
+              <HomePage />
+            )
+          }
+        />
+        <Route path="/consultant" element={<ConsultantPage />} />
+        <Route path="/settings" element={<SettingsPage />} />
+        <Route path="/learning/:courseId" element={<LearningPage />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
 
       <AdminPanel isOpen={showAdminPanel} onClose={() => setShowAdminPanel(false)} />
     </>

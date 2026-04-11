@@ -83,12 +83,12 @@ export const AuthPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+    <div className="h-screen flex items-center justify-center bg-[#fefae0] p-4 overflow-hidden">
       <Card className="max-w-md w-full">
         <div className="text-center mb-6">
           <div className="text-4xl mb-4">&#128273;</div>
-          <h1 className="text-2xl font-bold text-primary mb-2">智学伴侣</h1>
-          <p className="text-muted-foreground">输入激活密钥开始使用</p>
+          <h1 className="text-2xl font-bold text-[#588157] mb-2">智学伴侣</h1>
+          <p className="text-[#666666]">输入激活密钥开始使用</p>
         </div>
 
         {machineId && (

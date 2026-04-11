@@ -68,11 +68,11 @@ export const SetupWizard: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-bg-primary p-8">
+    <div className="h-screen flex items-center justify-center bg-[#fefae0] p-8 overflow-hidden">
       <div className="max-w-2xl w-full">
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-primary mb-2">欢迎使用智学伴侣</h1>
-          <p className="text-text-secondary">让我们先完成一些基本配置</p>
+          <h1 className="text-2xl font-bold text-[#588157] mb-2">欢迎使用智学伴侣</h1>
+          <p className="text-[#666666]">让我们先完成一些基本配置</p>
         </div>
 
         {/* 步骤指示器 */}
@@ -85,7 +85,7 @@ export const SetupWizard: React.FC = () => {
                     completedSteps.has(index)
                       ? 'bg-green-500 text-white'
                       : index === currentStep
-                      ? 'bg-primary text-white'
+                      ? 'bg-[#588157] text-white'
                       : 'bg-gray-200 text-gray-500'
                   }`}
                 >
@@ -93,7 +93,7 @@ export const SetupWizard: React.FC = () => {
                 </div>
                 <span
                   className={`text-xs mt-2 ${
-                    index === currentStep ? 'text-primary font-medium' : 'text-text-muted'
+                    index === currentStep ? 'text-[#588157] font-medium' : 'text-[#999999]'
                   }`}
                 >
                   {step.title}

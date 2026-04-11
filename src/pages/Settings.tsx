@@ -141,11 +141,11 @@ export const SettingsPage: React.FC = () => {
   };
 
   return (
-    <div className="flex min-h-screen">
+    <div className="h-screen overflow-hidden">
       <Sidebar items={navItems} activePath="/settings" onNavigate={(path) => navigate(path)} />
 
-      <main className="flex-1 p-8">
-        <h1 className="text-2xl font-bold text-primary mb-8">设置</h1>
+      <main className="ml-48 h-full overflow-y-auto p-8">
+        <h1 className="text-2xl font-bold text-[#588157] mb-8">设置</h1>
 
         <div className="max-w-2xl space-y-6">
           {/* AI 服务配置 */}

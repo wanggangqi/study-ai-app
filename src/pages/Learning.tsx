@@ -143,11 +143,11 @@ export const LearningPage: React.FC = () => {
 
   if (!currentCourse) {
     return (
-      <div className="flex min-h-screen">
+      <div className="h-screen overflow-hidden flex">
         <Sidebar items={navItems} activePath="/" onNavigate={(path) => navigate(path)} />
-        <main className="flex-1 p-8 flex items-center justify-center">
+        <main className="ml-48 h-full flex items-center justify-center">
           <Card className="text-center py-12">
-            <p className="text-text-muted mb-4">课程加载中...</p>
+            <p className="text-[#666666] mb-4">课程加载中...</p>
             <Button onClick={() => navigate('/')}>返回首页</Button>
           </Card>
         </main>
@@ -156,7 +156,7 @@ export const LearningPage: React.FC = () => {
   }
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="h-screen overflow-hidden flex flex-col">
       {/* 顶部栏 */}
       <header className="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between">
         <div className="flex items-center gap-4">
@@ -198,16 +198,16 @@ export const LearningPage: React.FC = () => {
       {/* 三栏内容区 */}
       <div className="flex flex-1 overflow-hidden">
         {/* 左侧导航栏 - 课程大纲 */}
-        <aside className="w-64 bg-bg-secondary border-r border-gray-200 overflow-y-auto">
+        <aside className="w-64 bg-[#f5ebe0] border-r border-gray-200 overflow-y-auto flex-shrink-0">
           <div className="p-4">
-            <h2 className="font-bold text-primary mb-4 px-2">
+            <h2 className="font-bold text-[#588157] mb-4 px-2">
               课程大纲
             </h2>
             <div className="space-y-3">
               {currentCourse.chapters?.map((chapter: ChapterWithLessons, chapterIndex: number) => (
                 <div key={chapter.id}>
-                  <div className="px-2 py-2 text-sm font-medium text-text-secondary flex items-center gap-2">
-                    <span className="text-primary">第{chapterIndex + 1}章</span>
+                  <div className="px-2 py-2 text-sm font-medium text-[#666666] flex items-center gap-2">
+                    <span className="text-[#588157]">第{chapterIndex + 1}章</span>
                     <span className="truncate">{chapter.name}</span>
                   </div>
                   <div className="space-y-1">
@@ -222,12 +222,12 @@ export const LearningPage: React.FC = () => {
                           onClick={() => handleSelectLesson(lesson, chapter)}
                           className={`w-full text-left px-4 py-2 text-sm rounded-md transition-all ${
                             isActive
-                              ? 'bg-primary text-white shadow-sm'
+                              ? 'bg-[#588157] text-white shadow-sm'
                               : isCompleted
                               ? 'text-green-600 bg-green-50 hover:bg-green-100'
                               : isInProgress
-                              ? 'text-primary bg-primary/10 hover:bg-primary/20'
-                              : 'text-text-muted hover:bg-white/50'
+                              ? 'text-[#588157] bg-[#588157]/10 hover:bg-[#588157]/20'
+                              : 'text-[#999999] hover:bg-white/50'
                           }`}
                         >
                           <span className="mr-2 flex-shrink-0">
@@ -303,7 +303,7 @@ export const LearningPage: React.FC = () => {
                 </div>
               </>
             ) : (
-              <div className="flex-1 flex items-center justify-center text-text-muted">
+              <div className="flex-1 flex items-center justify-center text-[#999999]">
                 <div className="text-center">
                   <div className="text-6xl mb-4">📖</div>
                   <p className="text-lg mb-2">选择一个课时开始学习</p>
@@ -315,11 +315,11 @@ export const LearningPage: React.FC = () => {
         </main>
 
         {/* 右侧边栏 - 练习题和答疑 */}
-        <aside className="w-80 bg-bg-secondary border-l border-gray-200 flex flex-col overflow-hidden">
+        <aside className="w-80 bg-[#f5ebe0] border-l border-gray-200 flex flex-col overflow-hidden flex-shrink-0">
           {currentLesson && currentCourse ? (
             <div className="flex-1 flex flex-col overflow-hidden">
               <div className="p-4 border-b border-gray-200 bg-white">
-                <h3 className="font-bold text-primary">学习助手</h3>
+                <h3 className="font-bold text-[#588157]">学习助手</h3>
                 <p className="text-xs text-gray-500 mt-1 truncate">
                   {currentCourse.name} / {currentLesson.name}
                 </p>
@@ -329,7 +329,7 @@ export const LearningPage: React.FC = () => {
                 <button
                   className={`flex-1 px-4 py-2.5 text-sm font-medium transition-colors ${
                     rightSidebarTab === 'exercise'
-                      ? 'text-primary border-b-2 border-primary bg-white'
+                      ? 'text-[#588157] border-b-2 border-[#588157] bg-white'
                       : 'text-gray-500 hover:text-gray-700'
                   }`}
                   onClick={() => setRightSidebarTab('exercise')}
@@ -339,7 +339,7 @@ export const LearningPage: React.FC = () => {
                 <button
                   className={`flex-1 px-4 py-2.5 text-sm font-medium transition-colors ${
                     rightSidebarTab === 'chat'
-                      ? 'text-primary border-b-2 border-primary bg-white'
+                      ? 'text-[#588157] border-b-2 border-[#588157] bg-white'
                       : 'text-gray-500 hover:text-gray-700'
                   }`}
                   onClick={() => setRightSidebarTab('chat')}
@@ -368,7 +368,7 @@ export const LearningPage: React.FC = () => {
               </div>
             </div>
           ) : (
-            <div className="flex-1 flex flex-col items-center justify-center text-text-muted p-4">
+            <div className="flex-1 flex flex-col items-center justify-center text-[#999999] p-4">
               <div className="text-4xl mb-4">💬</div>
               <p className="text-center text-sm">
                 选择一个课时后
