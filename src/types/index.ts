@@ -1,5 +1,5 @@
-// AI 服务商类型
-export type AIProvider = 'claude' | 'openai' | 'qwen' | 'deepseek' | 'glm' | 'minimax' | 'kimi';
+// AI 服务商类型（国内供应商）
+export type AIProvider = 'qwen' | 'deepseek' | 'glm' | 'minimax' | 'kimi';
 
 // 授权状态
 export interface AuthState {
@@ -141,13 +141,11 @@ export interface CoursePlanOutline {
   chapters: ChapterPlanOutline[];
 }
 
-// 默认模型映射
+// 默认模型映射（国内供应商）
 export const DEFAULT_MODELS: Record<AIProvider, string> = {
-  claude: 'claude-3-sonnet-20240229',
-  openai: 'gpt-4o',
   qwen: 'qwen-plus',
   deepseek: 'deepseek-chat',
   glm: 'glm-4-flash',
-  minimax: 'abab5.5-chat',
+  minimax: 'abab6.5s-chat',
   kimi: 'moonshot-v1-8k',
 };

@@ -90,6 +90,25 @@ fn get_verify_key() -> Result<super::crypto::VerifyingKey, LicenseError> {
         .map_err(|_| LicenseError::NotFound)
 }
 
+/// 从 PEM 格式或纯 Base64 格式解析私钥
+fn parse_signing_key(content: &str) -> Result<super::crypto::SigningKey, LicenseError> {
+    let trimmed = content.trim();
+    // 检查是否是 PEM 格式
+    if trimmed.contains("-----BEGIN") {
+        // 提取 PEM 格式中的 Base64 内容
+        let lines: Vec<&str> = trimmed.lines()
+            .filter(|line| !line.starts_with("-----"))
+            .collect();
+        let base64_content = lines.join("");
+        signing_key_from_base64(&base64_content)
+            .map_err(|_| LicenseError::InvalidFormat)
+    } else {
+        // 纯 Base64 格式
+        signing_key_from_base64(trimmed)
+            .map_err(|_| LicenseError::InvalidFormat)
+    }
+}
+
 /// 获取当前有效的签名私钥（从 localData 目录或项目根目录）
 pub fn get_signing_key() -> Result<Option<super::crypto::SigningKey>, LicenseError> {
     // 优先检查 localData 目录
@@ -97,9 +116,10 @@ pub fn get_signing_key() -> Result<Option<super::crypto::SigningKey>, LicenseErr
     if local_data_key.exists() {
         let content = fs::read_to_string(&local_data_key)
             .map_err(|e| LicenseError::ReadError(e.to_string()))?;
-        let key = signing_key_from_base64(content.trim())
-            .map_err(|_| LicenseError::InvalidFormat)?;
-        return Ok(Some(key));
+        match parse_signing_key(&content) {
+            Ok(key) => return Ok(Some(key)),
+            Err(e) => println!("Failed to parse local signing key: {:?}", e),
+        }
     }
 
     // 检查项目根目录（默认私钥文件）
@@ -107,7 +127,7 @@ pub fn get_signing_key() -> Result<Option<super::crypto::SigningKey>, LicenseErr
     if project_key.exists() {
         let content = fs::read_to_string(&project_key)
             .map_err(|e| LicenseError::ReadError(e.to_string()))?;
-        let key = signing_key_from_base64(content.trim())
+        let key = parse_signing_key(&content)
             .map_err(|_| LicenseError::InvalidFormat)?;
         return Ok(Some(key));
     }

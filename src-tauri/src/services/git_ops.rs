@@ -164,9 +164,9 @@ pub fn commit(path: &str, message: &str) -> Result<(), GitError> {
     }
 }
 
-/// 推送更改到远程仓库
+/// 推送更改到远程仓库（设置上游分支）
 pub fn push(path: &str, remote: &str, branch: &str) -> Result<(), GitError> {
-    let output = run_git_command_internal(&["push", remote, branch], Some(path))?;
+    let output = run_git_command_internal(&["push", "-u", remote, branch], Some(path))?;
     if output.status.success() {
         Ok(())
     } else {

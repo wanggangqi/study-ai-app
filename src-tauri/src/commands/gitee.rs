@@ -30,7 +30,7 @@ pub struct GiteeRepo {
     pub html_url: String,
     pub description: Option<String>,
     pub private: bool,
-    pub default_branch: String,
+    pub default_branch: Option<String>,
 }
 
 /// 码云账户验证结果
@@ -49,10 +49,9 @@ pub struct GiteeRepoResult {
     pub message: String,
 }
 
-/// 创建仓库请求
+/// 创建仓库请求（access_token 不放入 body）
 #[derive(Debug, Serialize)]
 struct CreateRepoRequest {
-    access_token: String,
     name: String,
     description: String,
     private: bool,
@@ -104,9 +103,11 @@ pub async fn create_gitee_repo_internal(
     private: bool,
 ) -> Result<GiteeRepo, GiteeError> {
     let url = format!("{}/user/repos", GITEE_API_BASE);
+    eprintln!("[Gitee] 创建仓库 URL: {}", url);
+    eprintln!("[Gitee] 仓库名称: {}", repo_name);
+    eprintln!("[Gitee] Token长度: {}", token.len());
 
     let request = CreateRepoRequest {
-        access_token: token.to_string(),
         name: repo_name.to_string(),
         description: description.to_string(),
         private,
@@ -114,22 +115,34 @@ pub async fn create_gitee_repo_internal(
         default_branch: "main".to_string(),
     };
 
+    eprintln!("[Gitee] 请求体: {}", serde_json::to_string(&request).unwrap_or_default());
+
     let client = reqwest::Client::new();
     let response = client
         .post(&url)
+        .query(&[("access_token", token)])
         .json(&request)
         .send()
         .await
-        .map_err(|e| GiteeError::HttpError(e.to_string()))?;
+        .map_err(|e| {
+            eprintln!("[Gitee] HTTP请求失败: {}", e);
+            GiteeError::HttpError(e.to_string())
+        })?;
+
+    eprintln!("[Gitee] 响应状态码: {}", response.status());
 
     if response.status().is_success() {
-        response
-            .json::<GiteeRepo>()
-            .await
-            .map_err(|e| GiteeError::JsonError(e.to_string()))
+        let response_text = response.text().await.map_err(|e| GiteeError::HttpError(e.to_string()))?;
+        eprintln!("[Gitee] 响应内容: {}", response_text);
+        serde_json::from_str::<GiteeRepo>(&response_text)
+            .map_err(|e| {
+                eprintln!("[Gitee] JSON解析失败: {}", e);
+                GiteeError::JsonError(e.to_string())
+            })
     } else {
         let status = response.status();
         let text = response.text().await.unwrap_or_default();
+        eprintln!("[Gitee] API错误响应: status={}, body={}", status, text);
         Err(GiteeError::ApiError(format!(
             "status: {}, body: {}",
             status, text

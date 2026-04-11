@@ -120,12 +120,6 @@ impl Database {
             [],
         )?;
 
-        // 创建 user_config 表
-        conn.execute(
-            &schema::CREATE_USER_CONFIG_TABLE,
-            [],
-        )?;
-
         Ok(())
     }
 

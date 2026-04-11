@@ -14,14 +14,34 @@ const navItems = [
   { icon: '⚙️', label: '设置', path: '/settings' },
 ];
 
+// 国内 AI 服务商列表（移除国外供应商）
 const aiProviders = [
-  { id: 'claude' as AIProvider, name: 'Claude (Anthropic)', baseUrl: 'https://api.anthropic.com' },
-  { id: 'openai' as AIProvider, name: 'ChatGPT (OpenAI)', baseUrl: 'https://api.openai.com' },
-  { id: 'qwen' as AIProvider, name: '通义千问 (阿里云)', baseUrl: 'https://dashscope.aliyuncs.com' },
-  { id: 'deepseek' as AIProvider, name: 'DeepSeek', baseUrl: 'https://api.deepseek.com' },
-  { id: 'glm' as AIProvider, name: '智谱 GLM', baseUrl: 'https://open.bigmodel.cn' },
-  { id: 'minimax' as AIProvider, name: 'MiniMax', baseUrl: 'https://api.minimax.chat' },
-  { id: 'kimi' as AIProvider, name: 'Kimi (Moonshot)', baseUrl: 'https://api.moonshot.cn' },
+  { id: 'qwen' as AIProvider, name: '通义千问 (阿里云)', baseUrl: 'https://dashscope.aliyuncs.com/compatible-mode/v1', models: [
+    { id: 'qwen-max', name: 'qwen-max (旗舰模型)' },
+    { id: 'qwen-plus', name: 'qwen-plus (主力模型)' },
+    { id: 'qwen-turbo', name: 'qwen-turbo (快速模型)' },
+    { id: 'qwen-long', name: 'qwen-long (长文本)' },
+  ] },
+  { id: 'deepseek' as AIProvider, name: 'DeepSeek', baseUrl: 'https://api.deepseek.com', models: [
+    { id: 'deepseek-chat', name: 'deepseek-chat (对话模型)' },
+    { id: 'deepseek-reasoner', name: 'deepseek-reasoner (推理模型)' },
+  ] },
+  { id: 'glm' as AIProvider, name: '智谱 GLM', baseUrl: 'https://open.bigmodel.cn/api/paas/v4', models: [
+    { id: 'glm-4-plus', name: 'glm-4-plus (旗舰模型)' },
+    { id: 'glm-4-0520', name: 'glm-4-0520 (智能体模型)' },
+    { id: 'glm-4-flash', name: 'glm-4-flash (快速免费)' },
+    { id: 'glm-4-long', name: 'glm-4-long (长文本)' },
+  ] },
+  { id: 'minimax' as AIProvider, name: 'MiniMax', baseUrl: 'https://api.minimax.chat/v1', models: [
+    { id: 'abab6.5s-chat', name: 'abab6.5s-chat (旗舰模型)' },
+    { id: 'abab6.5-chat', name: 'abab6.5-chat (主力模型)' },
+    { id: 'abab5.5-chat', name: 'abab5.5-chat (快速模型)' },
+  ] },
+  { id: 'kimi' as AIProvider, name: 'Kimi (Moonshot)', baseUrl: 'https://api.moonshot.cn/v1', models: [
+    { id: 'moonshot-v1-8k', name: 'moonshot-v1-8k (8K上下文)' },
+    { id: 'moonshot-v1-32k', name: 'moonshot-v1-32k (32K上下文)' },
+    { id: 'moonshot-v1-128k', name: 'moonshot-v1-128k (128K上下文)' },
+  ] },
 ];
 
 const builtInTeachingStyles = [
@@ -161,12 +181,20 @@ export const SettingsPage: React.FC = () => {
                 onChange={(e) => setConfig({ aiApiKey: e.target.value })}
               />
 
-              <Input
-                label="模型（可选）"
-                placeholder="留空使用默认模型"
-                value={aiModel}
-                onChange={(e) => setConfig({ aiModel: e.target.value })}
-              />
+              {/* 模型选择 - 下拉框 */}
+              <div>
+                <label className="block text-sm font-medium mb-2">选择模型</label>
+                <select
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 bg-white"
+                  value={aiModel}
+                  onChange={(e) => setConfig({ aiModel: e.target.value })}
+                >
+                  <option value="">使用默认模型</option>
+                  {currentProvider?.models.map((model) => (
+                    <option key={model.id} value={model.id}>{model.name}</option>
+                  ))}
+                </select>
+              </div>
 
               <div className="flex items-center gap-2">
                 <Button onClick={handleTestConnection} disabled={testing} size="sm">

@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import DOMPurify from 'dompurify';
+import { invoke } from '@tauri-apps/api/core';
 import { useCourseStore } from '../../stores/courseStore';
 import { generateLessonHTML } from '../../hooks/useAI';
 import './CoursewareViewer.css';
@@ -27,10 +28,12 @@ export const CoursewareViewer: React.FC<CoursewareViewerProps> = ({
     if (!content && currentCourse && currentChapter && currentLesson) {
       loadLessonContent();
     }
-  }, [lessonId, content]);
+  }, [lessonId]);
 
   const loadLessonContent = async () => {
-    if (!currentCourse || !currentChapter || !currentLesson) return;
+    if (!currentCourse || !currentChapter || !currentLesson) {
+      return;
+    }
 
     setIsLoading(true);
     setError(null);
@@ -45,6 +48,18 @@ export const CoursewareViewer: React.FC<CoursewareViewerProps> = ({
 
       if (result.success && result.data) {
         setLessonContent(lessonId, result.data);
+
+        // 将课件内容保存到文件系统
+        try {
+          await invoke<string>('save_lesson_file_command', {
+            courseId: currentCourse.id,
+            lessonId: lessonId,
+            content: result.data,
+          });
+        } catch (saveError) {
+          console.error('保存课件文件失败:', saveError);
+          // 文件保存失败不影响课件显示，仅记录错误
+        }
       } else {
         setError(result.error || '加载课件失败');
       }
@@ -77,9 +92,9 @@ export const CoursewareViewer: React.FC<CoursewareViewerProps> = ({
   if (isLoading) {
     return (
       <div className="courseware-viewer-loading">
-        <div className="courseware-viewer-empty-icon">📖</div>
+        <div className="courseware-loading-spinner" />
         <p className="courseware-viewer-empty-title">正在生成课件...</p>
-        <p className="courseware-viewer-empty-hint">AI 正在为您创作个性化的学习内容</p>
+        <p className="courseware-viewer-empty-hint">AI 正在为您创作个性化的学习内容，请稍候</p>
       </div>
     );
   }
@@ -101,6 +116,7 @@ export const CoursewareViewer: React.FC<CoursewareViewerProps> = ({
         <div className="courseware-viewer-empty-icon">📖</div>
         <p className="courseware-viewer-empty-title">暂无课件内容</p>
         <p className="courseware-viewer-empty-hint">请先选择课程和课时</p>
+        <button onClick={() => loadLessonContent()} className="courseware-retry-btn">手动加载课件</button>
       </div>
     );
   }

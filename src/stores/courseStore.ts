@@ -128,9 +128,13 @@ export const useCourseStore = create<CourseStore>((set, get) => ({
     }
   },
 
-  selectChapter: (chapter) => set({ currentChapter: chapter }),
+  selectChapter: (chapter) => {
+    set({ currentChapter: chapter });
+  },
 
-  selectLesson: (lesson) => set({ currentLesson: lesson }),
+  selectLesson: (lesson) => {
+    set({ currentLesson: lesson });
+  },
 
   updateLessonStatus: (lessonId, status) => {
     // 持久化到后端

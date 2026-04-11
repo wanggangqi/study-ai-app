@@ -68,8 +68,6 @@ pub use database::{
     get_chat_messages_by_lesson_command,
     delete_chat_message_command,
     clear_chat_messages_by_course_command,
-    get_user_config_command,
-    update_user_config_command,
     create_chapters_with_lessons_command,
 };
 
@@ -93,6 +91,7 @@ pub use sync::{
     export_learning_records,
     sync_course_to_git_command,
     create_course_repository_command,
+    save_lesson_file_command,
     ai_generate_course_plan_command,
     SyncResult,
     SyncError,

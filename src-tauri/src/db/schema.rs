@@ -71,21 +71,6 @@ CREATE TABLE IF NOT EXISTS chat_messages (
 )
 "#;
 
-/// user_config 表创建语句
-pub const CREATE_USER_CONFIG_TABLE: &str = r#"
-CREATE TABLE IF NOT EXISTS user_config (
-    id INTEGER PRIMARY KEY,
-    gitee_username TEXT,
-    gitee_token TEXT,
-    workspace_path TEXT,
-    ai_provider TEXT,
-    ai_api_key TEXT,
-    ai_model TEXT,
-    git_username TEXT,
-    git_email TEXT
-)
-"#;
-
 /// 课程状态枚举
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(i32)]

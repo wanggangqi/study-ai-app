@@ -16,7 +16,6 @@ use crate::services::{
 };
 
 use serde::{Deserialize, Serialize};
-use tauri::async_runtime::block_on;
 
 /// AI 聊天命令参数
 #[derive(Debug, Serialize, Deserialize)]
@@ -102,8 +101,6 @@ pub struct AIAnalyzeResult {
 /// 解析 AI 服务商
 fn parse_provider(provider_str: &str) -> Result<AIProvider, String> {
     match provider_str.to_lowercase().as_str() {
-        "claude" => Ok(AIProvider::Claude),
-        "openai" => Ok(AIProvider::OpenAI),
         "qwen" => Ok(AIProvider::Qwen),
         "deepseek" => Ok(AIProvider::DeepSeek),
         "glm" => Ok(AIProvider::Glm),
@@ -115,7 +112,7 @@ fn parse_provider(provider_str: &str) -> Result<AIProvider, String> {
 
 /// AI 聊天命令
 #[tauri::command]
-pub fn ai_chat_command(params: AIChatParams) -> AIResult {
+pub async fn ai_chat_command(params: AIChatParams) -> AIResult {
     let provider = match parse_provider(&params.provider) {
         Ok(p) => p,
         Err(e) => return AIResult { success: false, data: None, error: Some(e) },
@@ -132,11 +129,7 @@ pub fn ai_chat_command(params: AIChatParams) -> AIResult {
         .map(|m| m.into())
         .collect();
 
-    let result = block_on(async {
-        chat(&config, messages).await
-    });
-
-    match result {
+    match chat(&config, messages).await {
         Ok(response) => AIResult { success: true, data: Some(response), error: None },
         Err(e) => AIResult { success: false, data: None, error: Some(e.to_string()) },
     }
@@ -144,7 +137,7 @@ pub fn ai_chat_command(params: AIChatParams) -> AIResult {
 
 /// AI 生成课件命令
 #[tauri::command]
-pub fn ai_generate_lesson_command(params: AIGenerateLessonParams) -> AIResult {
+pub async fn ai_generate_lesson_command(params: AIGenerateLessonParams) -> AIResult {
     let provider = match parse_provider(&params.provider) {
         Ok(p) => p,
         Err(e) => return AIResult { success: false, data: None, error: Some(e) },
@@ -157,17 +150,13 @@ pub fn ai_generate_lesson_command(params: AIGenerateLessonParams) -> AIResult {
         config
     };
 
-    let result = block_on(async {
-        generate_lesson(
-            &config,
-            &params.course_name,
-            &params.chapter_name,
-            &params.lesson_name,
-            &params.teaching_style,
-        ).await
-    });
-
-    match result {
+    match generate_lesson(
+        &config,
+        &params.course_name,
+        &params.chapter_name,
+        &params.lesson_name,
+        &params.teaching_style,
+    ).await {
         Ok(html) => AIResult { success: true, data: Some(html), error: None },
         Err(e) => AIResult { success: false, data: None, error: Some(e.to_string()) },
     }
@@ -175,7 +164,7 @@ pub fn ai_generate_lesson_command(params: AIGenerateLessonParams) -> AIResult {
 
 /// AI 生成练习题命令
 #[tauri::command]
-pub fn ai_generate_exercise_command(params: AIGenerateExerciseParams) -> AIResult {
+pub async fn ai_generate_exercise_command(params: AIGenerateExerciseParams) -> AIResult {
     let provider = match parse_provider(&params.provider) {
         Ok(p) => p,
         Err(e) => return AIResult { success: false, data: None, error: Some(e) },
@@ -188,11 +177,7 @@ pub fn ai_generate_exercise_command(params: AIGenerateExerciseParams) -> AIResul
         config
     };
 
-    let result = block_on(async {
-        generate_exercise(&config, &params.lesson_content).await
-    });
-
-    match result {
+    match generate_exercise(&config, &params.lesson_content).await {
         Ok(html) => AIResult { success: true, data: Some(html), error: None },
         Err(e) => AIResult { success: false, data: None, error: Some(e.to_string()) },
     }
@@ -200,7 +185,7 @@ pub fn ai_generate_exercise_command(params: AIGenerateExerciseParams) -> AIResul
 
 /// AI 分析答案命令
 #[tauri::command]
-pub fn ai_analyze_answers_command(params: AIAnalyzeAnswersParams) -> AIAnalyzeResult {
+pub async fn ai_analyze_answers_command(params: AIAnalyzeAnswersParams) -> AIAnalyzeResult {
     let provider = match parse_provider(&params.provider) {
         Ok(p) => p,
         Err(e) => return AIAnalyzeResult {
@@ -219,11 +204,7 @@ pub fn ai_analyze_answers_command(params: AIAnalyzeAnswersParams) -> AIAnalyzeRe
         config
     };
 
-    let result = block_on(async {
-        analyze_answers(&config, &params.exercise_content, &params.user_answers).await
-    });
-
-    match result {
+    match analyze_answers(&config, &params.exercise_content, &params.user_answers).await {
         Ok(analyze_result) => AIAnalyzeResult {
             success: true,
             score: Some(analyze_result.score),
@@ -243,7 +224,7 @@ pub fn ai_analyze_answers_command(params: AIAnalyzeAnswersParams) -> AIAnalyzeRe
 
 /// AI 验证密钥命令
 #[tauri::command]
-pub fn ai_verify_key_command(params: AIVerifyKeyParams) -> AIResult {
+pub async fn ai_verify_key_command(params: AIVerifyKeyParams) -> AIResult {
     let provider = match parse_provider(&params.provider) {
         Ok(p) => p,
         Err(e) => return AIResult { success: false, data: None, error: Some(e) },
@@ -251,11 +232,7 @@ pub fn ai_verify_key_command(params: AIVerifyKeyParams) -> AIResult {
 
     let config = AIConfig::new(provider, params.api_key);
 
-    let result = block_on(async {
-        verify_api_key(&config).await
-    });
-
-    match result {
+    match verify_api_key(&config).await {
         Ok(valid) => AIResult {
             success: true,
             data: Some(if valid { "valid".to_string() } else { "invalid".to_string() }),
@@ -285,7 +262,7 @@ pub struct AIStructuredExerciseResult {
 
 /// AI 生成结构化练习题命令
 #[tauri::command]
-pub fn ai_generate_structured_exercise_command(params: AIGenerateStructuredExerciseParams) -> AIStructuredExerciseResult {
+pub async fn ai_generate_structured_exercise_command(params: AIGenerateStructuredExerciseParams) -> AIStructuredExerciseResult {
     let provider = match parse_provider(&params.provider) {
         Ok(p) => p,
         Err(e) => return AIStructuredExerciseResult { success: false, data: None, error: Some(e) },
@@ -298,11 +275,7 @@ pub fn ai_generate_structured_exercise_command(params: AIGenerateStructuredExerc
         config
     };
 
-    let result = block_on(async {
-        generate_structured_exercise(&config, &params.lesson_id, &params.lesson_content).await
-    });
-
-    match result {
+    match generate_structured_exercise(&config, &params.lesson_id, &params.lesson_content).await {
         Ok(exercises) => AIStructuredExerciseResult { success: true, data: Some(exercises), error: None },
         Err(e) => AIStructuredExerciseResult { success: false, data: None, error: Some(e.to_string()) },
     }

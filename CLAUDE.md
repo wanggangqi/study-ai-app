@@ -65,3 +65,26 @@ npm run tauri build
 - 组件开发使用 React + TypeScript
 - 后端命令在 `src-tauri/src/commands/` 目录下添加
 - 数据库操作在 `src-tauri/src/db/` 目录下实现
+
+## 配置文件
+
+配置文件位于 `%LOCALAPPDATA%\com.studymate.app\localData\config.json`
+
+### 配置字段说明
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `setup_completed` | bool | 是否已完成初始设置 |
+| `gitee_username` | string | 码云用户名 |
+| `gitee_token` | string | 码云访问令牌 |
+| `workspace_path` | string | 本地工作空间路径 |
+| `ai_provider` | string | AI 服务商 (claude/openai/qwen/deepseek/glm/minimax/kimi) |
+| `ai_api_key` | string | AI API 密钥 |
+| `ai_model` | string | AI 模型名称 |
+| `git_username` | string | Git 用户名 |
+| `git_email` | string | Git 邮箱 |
+| `teaching_style` | string | 默认教学风格 |
+
+### 配置加载逻辑
+
+所有配置均从 `config.json` 文件读取，不再使用 SQLite 的 `user_config` 表。同步功能（创建课程仓库、码云同步）直接读取配置文件获取码云 token、用户名和工作空间路径。

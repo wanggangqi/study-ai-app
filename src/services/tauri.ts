@@ -103,11 +103,21 @@ export const tauriService = {
 
   // 码云同步相关
   async syncCourseToGitee(courseId: string): Promise<{ success: boolean; message: string; repoUrl?: string }> {
-    return invoke('sync_course_to_git_command', { courseId });
+    const result = await invoke<{ success: boolean; message: string; repo_url?: string }>('sync_course_to_git_command', { courseId });
+    return {
+      success: result.success,
+      message: result.message,
+      repoUrl: result.repo_url,
+    };
   },
 
   async createCourseRepository(courseId: string): Promise<{ success: boolean; message: string; repoUrl?: string }> {
-    return invoke('create_course_repository_command', { courseId });
+    const result = await invoke<{ success: boolean; message: string; repo_url?: string }>('create_course_repository_command', { courseId });
+    return {
+      success: result.success,
+      message: result.message,
+      repoUrl: result.repo_url,
+    };
   },
 
   // 课程大纲生成

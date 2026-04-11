@@ -5,14 +5,34 @@ import { Input } from '../common/Input';
 import { Button } from '../common/Button';
 import { SetupStepProps } from './SetupWizard';
 
+// 国内 AI 服务商列表（移除国外供应商）
 const AI_PROVIDERS = [
-  { id: 'claude', name: 'Claude (Anthropic)', icon: '🤖', models: ['claude-3-opus', 'claude-3-sonnet', 'claude-3-haiku'] },
-  { id: 'openai', name: 'ChatGPT (OpenAI)', icon: '💬', models: ['gpt-4', 'gpt-4-turbo', 'gpt-3.5-turbo'] },
-  { id: 'qwen', name: '通义千问 (阿里云)', icon: '🌐', models: ['qwen-turbo', 'qwen-plus', 'qwen-max'] },
-  { id: 'deepseek', name: 'DeepSeek', icon: '🔮', models: ['deepseek-chat', 'deepseek-coder'] },
-  { id: 'glm', name: '智谱 GLM', icon: '✨', models: ['glm-4', 'glm-4-flash', 'glm-3-turbo'] },
-  { id: 'minimax', name: 'MiniMax', icon: '🎯', models: ['abab6-chat', 'abab5.5-chat'] },
-  { id: 'kimi', name: 'Kimi (Moonshot)', icon: '🌙', models: ['moonshot-v1-8k', 'moonshot-v1-32k'] },
+  { id: 'qwen', name: '通义千问 (阿里云)', icon: '🌐', baseUrl: 'https://dashscope.aliyuncs.com/compatible-mode/v1', models: [
+    { id: 'qwen-max', name: 'qwen-max (旗舰模型)' },
+    { id: 'qwen-plus', name: 'qwen-plus (主力模型)' },
+    { id: 'qwen-turbo', name: 'qwen-turbo (快速模型)' },
+    { id: 'qwen-long', name: 'qwen-long (长文本)' },
+  ] },
+  { id: 'deepseek', name: 'DeepSeek', icon: '🔮', baseUrl: 'https://api.deepseek.com', models: [
+    { id: 'deepseek-chat', name: 'deepseek-chat (对话模型)' },
+    { id: 'deepseek-reasoner', name: 'deepseek-reasoner (推理模型)' },
+  ] },
+  { id: 'glm', name: '智谱 GLM', icon: '✨', baseUrl: 'https://open.bigmodel.cn/api/paas/v4', models: [
+    { id: 'glm-4-plus', name: 'glm-4-plus (旗舰模型)' },
+    { id: 'glm-4-0520', name: 'glm-4-0520 (智能体模型)' },
+    { id: 'glm-4-flash', name: 'glm-4-flash (快速免费)' },
+    { id: 'glm-4-long', name: 'glm-4-long (长文本)' },
+  ] },
+  { id: 'minimax', name: 'MiniMax', icon: '🎯', baseUrl: 'https://api.minimax.chat/v1', models: [
+    { id: 'abab6.5s-chat', name: 'abab6.5s-chat (旗舰模型)' },
+    { id: 'abab6.5-chat', name: 'abab6.5-chat (主力模型)' },
+    { id: 'abab5.5-chat', name: 'abab5.5-chat (快速模型)' },
+  ] },
+  { id: 'kimi', name: 'Kimi (Moonshot)', icon: '🌙', baseUrl: 'https://api.moonshot.cn/v1', models: [
+    { id: 'moonshot-v1-8k', name: 'moonshot-v1-8k (8K上下文)' },
+    { id: 'moonshot-v1-32k', name: 'moonshot-v1-32k (32K上下文)' },
+    { id: 'moonshot-v1-128k', name: 'moonshot-v1-128k (128K上下文)' },
+  ] },
 ];
 
 export const AISetupStep: React.FC<SetupStepProps> = ({ onNext, onBack }) => {
@@ -20,6 +40,8 @@ export const AISetupStep: React.FC<SetupStepProps> = ({ onNext, onBack }) => {
   const [apiKey, setApiKey] = useState('');
   const [selectedModel, setSelectedModel] = useState('');
   const [isValidating, setIsValidating] = useState(false);
+  const [isTesting, setIsTesting] = useState(false);
+  const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null);
   const [error, setError] = useState('');
   const { setConfig, saveConfig } = useConfigStore();
 
@@ -27,6 +49,38 @@ export const AISetupStep: React.FC<SetupStepProps> = ({ onNext, onBack }) => {
     setSelectedProvider(providerId);
     setSelectedModel(''); // 重置模型选择
     setError('');
+    setTestResult(null);
+  };
+
+  // 测试连接
+  const handleTestConnection = async () => {
+    if (!apiKey.trim()) {
+      setTestResult({ success: false, message: '请先输入 API 密钥' });
+      return;
+    }
+
+    setIsTesting(true);
+    setTestResult(null);
+
+    try {
+      const result = await invoke<{
+        success: boolean;
+        data?: string;
+        error?: string;
+      }>('ai_verify_key_command', {
+        params: { provider: selectedProvider, api_key: apiKey },
+      });
+
+      if (result.success && result.data !== 'invalid') {
+        setTestResult({ success: true, message: 'API 密钥验证通过' });
+      } else {
+        setTestResult({ success: false, message: result.error || 'API 密钥验证失败' });
+      }
+    } catch (err) {
+      setTestResult({ success: false, message: '连接测试失败' });
+    } finally {
+      setIsTesting(false);
+    }
   };
 
   const handleSubmit = async () => {
@@ -36,6 +90,19 @@ export const AISetupStep: React.FC<SetupStepProps> = ({ onNext, onBack }) => {
 
     setIsValidating(true);
     setError('');
+
+    // 如果已经验证通过，直接保存配置
+    if (testResult?.success) {
+      setConfig({
+        aiProvider: selectedProvider as any,
+        aiApiKey: apiKey,
+        aiModel: selectedModel,
+      });
+      await saveConfig();
+      setIsValidating(false);
+      onNext();
+      return;
+    }
 
     try {
       // 验证 API 密钥
@@ -117,11 +184,23 @@ export const AISetupStep: React.FC<SetupStepProps> = ({ onNext, onBack }) => {
             >
               <option value="">请选择模型</option>
               {selectedProviderData.models.map((model) => (
-                <option key={model} value={model}>
-                  {model}
+                <option key={model.id} value={model.id}>
+                  {model.name}
                 </option>
               ))}
             </select>
+          </div>
+        )}
+
+        {/* API 地址显示 */}
+        {selectedProviderData && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              API 地址
+            </label>
+            <div className="w-full border border-gray-200 rounded-md px-3 py-2 bg-gray-50 text-gray-600 text-sm">
+              {selectedProviderData.baseUrl}
+            </div>
           </div>
         )}
 
@@ -131,8 +210,31 @@ export const AISetupStep: React.FC<SetupStepProps> = ({ onNext, onBack }) => {
           type="password"
           placeholder="输入你的 API 密钥"
           value={apiKey}
-          onChange={(e) => setApiKey(e.target.value)}
+          onChange={(e) => {
+            setApiKey(e.target.value);
+            setTestResult(null); // 密钥变更时清除测试结果
+          }}
         />
+
+        {/* 测试连接 */}
+        {selectedProvider && apiKey.trim() && (
+          <div className="flex items-center gap-3">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleTestConnection}
+              disabled={isTesting}
+            >
+              {isTesting ? '测试中...' : '测试连接'}
+            </Button>
+            {testResult && (
+              <span className={`text-sm ${testResult.success ? 'text-green-600' : 'text-red-600'}`}>
+                {testResult.message}
+              </span>
+            )}
+          </div>
+        )}
+
         {error && <p className="text-sm text-red-500">{error}</p>}
       </div>
 

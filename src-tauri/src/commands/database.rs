@@ -9,7 +9,7 @@ use crate::db::{
     schema::{AgentType, LessonStatus, MessageRole},
     operations::{
         self,
-        Course, Chapter, Lesson, LessonExercise, ChatMessage, UserConfig,
+        Course, Chapter, Lesson, LessonExercise, ChatMessage,
     },
 };
 
@@ -313,54 +313,30 @@ pub fn clear_chat_messages_by_course_command(state: State<DbState>, course_id: S
     operations::clear_chat_messages_by_course(&conn, &course_id).map_err(|e| DbCommandError::from(e))
 }
 
-// ==================== User Config Commands ====================
-
-/// 获取用户配置
-#[tauri::command]
-pub fn get_user_config_command(state: State<DbState>) -> DbResult<UserConfig> {
-    let db = state.0.lock().unwrap();
-    let conn = db.get_connection();
-    operations::get_or_create_user_config(&conn).map_err(|e| DbCommandError::from(e))
-}
-
-/// 更新用户配置
-#[tauri::command]
-pub fn update_user_config_command(
-    state: State<DbState>,
-    gitee_username: Option<String>,
-    gitee_token: Option<String>,
-    workspace_path: Option<String>,
-    ai_provider: Option<String>,
-    ai_api_key: Option<String>,
-    ai_model: Option<String>,
-    git_username: Option<String>,
-    git_email: Option<String>,
-) -> DbResult<UserConfig> {
-    let db = state.0.lock().unwrap();
-    let conn = db.get_connection();
-    operations::update_user_config(&conn, gitee_username, gitee_token, workspace_path, ai_provider, ai_api_key, ai_model, git_username, git_email)
-        .map_err(|e| DbCommandError::from(e))
-}
-
 // ==================== Batch Chapter/Lesson Commands ====================
 
 /// 批量创建章节和课时的参数
 #[derive(Debug, serde::Serialize, serde::Deserialize)]
 pub struct CreateChaptersWithLessonsParams {
+    #[serde(rename = "courseId")]
     pub course_id: String,
     pub chapters: Vec<ChapterWithLessonsParams>,
 }
 
 #[derive(Debug, serde::Serialize, serde::Deserialize)]
 pub struct ChapterWithLessonsParams {
+    #[serde(rename = "chapterIndex")]
     pub chapter_index: i32,
+    #[serde(rename = "chapterName")]
     pub chapter_name: String,
     pub lessons: Vec<LessonParams>,
 }
 
 #[derive(Debug, serde::Serialize, serde::Deserialize)]
 pub struct LessonParams {
+    #[serde(rename = "lessonIndex")]
     pub lesson_index: i32,
+    #[serde(rename = "lessonName")]
     pub lesson_name: String,
     pub duration: String,
 }

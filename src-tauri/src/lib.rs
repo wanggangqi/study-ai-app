@@ -54,9 +54,6 @@ use commands::{
     get_chat_messages_by_lesson_command,
     delete_chat_message_command,
     clear_chat_messages_by_course_command,
-    // UserConfig 操作
-    get_user_config_command,
-    update_user_config_command,
     // Batch Chapter/Lesson 操作
     create_chapters_with_lessons_command,
     // Git 命令
@@ -77,6 +74,7 @@ use commands::{
     // 同步命令
     sync_course_to_git_command,
     create_course_repository_command,
+    save_lesson_file_command,
     ai_generate_course_plan_command,
     // AI 命令
     ai_chat_command,
@@ -158,9 +156,6 @@ pub fn run() {
             get_chat_messages_by_lesson_command,
             delete_chat_message_command,
             clear_chat_messages_by_course_command,
-            // 数据库相关命令 - UserConfig
-            get_user_config_command,
-            update_user_config_command,
             // 批量创建章节和课时
             create_chapters_with_lessons_command,
             // Git 相关命令
@@ -181,6 +176,7 @@ pub fn run() {
             // 同步相关命令
             sync_course_to_git_command,
             create_course_repository_command,
+            save_lesson_file_command,
             ai_generate_course_plan_command,
             // AI 相关命令
             ai_chat_command,

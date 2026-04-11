@@ -106,17 +106,12 @@ export const LearningPage: React.FC = () => {
       selectChapter(chapter);
       selectLesson(lesson);
 
-      // 从 currentCourse.chapters 中查找当前 lesson 的最新状态
-      const latestLesson = currentCourse?.chapters
-        ?.flatMap((c) => c.lessons || [])
-        .find((l) => l.id === lesson.id);
-
       // 如果课时状态是 not_started，设置为 in_progress
-      if (latestLesson?.status === 'not_started') {
+      if (lesson.status === 'not_started') {
         updateLessonStatus(lesson.id, 'in_progress');
       }
     },
-    [currentCourse, currentLesson, selectChapter, selectLesson, updateLessonStatus]
+    [currentLesson, selectChapter, selectLesson, updateLessonStatus]
   );
 
   // 标记当前课时完成

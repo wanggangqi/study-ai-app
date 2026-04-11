@@ -2,16 +2,15 @@
 //!
 //! 封装多个 AI 服务商的 API 调用
 
+use std::error::Error as StdError;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
-/// AI 服务商类型
+/// AI 服务商类型（国内供应商）
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum AIProvider {
-    Claude,
-    OpenAI,
     Qwen,
     DeepSeek,
     Glm,
@@ -23,8 +22,6 @@ impl AIProvider {
     /// 获取服务商的 API 基础 URL
     pub fn base_url(&self) -> &str {
         match self {
-            AIProvider::Claude => "https://api.anthropic.com",
-            AIProvider::OpenAI => "https://api.openai.com",
             AIProvider::Qwen => "https://dashscope.aliyuncs.com",
             AIProvider::DeepSeek => "https://api.deepseek.com",
             AIProvider::Glm => "https://open.bigmodel.cn",
@@ -36,12 +33,10 @@ impl AIProvider {
     /// 获取默认模型
     pub fn default_model(&self) -> &str {
         match self {
-            AIProvider::Claude => "claude-3-sonnet-20240229",
-            AIProvider::OpenAI => "gpt-4o",
             AIProvider::Qwen => "qwen-plus",
             AIProvider::DeepSeek => "deepseek-chat",
             AIProvider::Glm => "glm-4-flash",
-            AIProvider::MiniMax => "abab5.5-chat",
+            AIProvider::MiniMax => "abab6.5s-chat",
             AIProvider::Kimi => "moonshot-v1-8k",
         }
     }
@@ -106,17 +101,9 @@ pub enum AIError {
 
     #[error("不支持的服务商: {0}")]
     UnsupportedProvider(String),
-}
 
-/// Claude API 响应
-#[derive(Debug, Deserialize)]
-struct ClaudeResponse {
-    content: Vec<ClaudeContent>,
-}
-
-#[derive(Debug, Deserialize)]
-struct ClaudeContent {
-    text: String,
+    #[error("网络错误: {0}")]
+    NetworkError(String),
 }
 
 /// OpenAI 格式响应（通用格式）
@@ -133,17 +120,6 @@ struct OpenAIChoice {
 #[derive(Debug, Deserialize)]
 struct OpenAIMessage {
     content: String,
-}
-
-/// 通义千问响应
-#[derive(Debug, Deserialize)]
-struct QwenResponse {
-    output: QwenOutput,
-}
-
-#[derive(Debug, Deserialize)]
-struct QwenOutput {
-    text: String,
 }
 
 /// 答案分析结果
@@ -175,77 +151,33 @@ pub struct StructuredExercise {
 
 /// 发送聊天消息到 AI
 pub async fn chat(config: &AIConfig, messages: Vec<ChatMessage>) -> Result<String, AIError> {
-    let client = Client::new();
+    eprintln!("[AI] provider={:?}, model={}, base_url={}, messages_count={}",
+        config.provider, config.get_model(), config.get_base_url(), messages.len());
+
+    let client = Client::builder()
+        .timeout(std::time::Duration::from_secs(120))
+        .connect_timeout(std::time::Duration::from_secs(15))
+        .build()
+        .map_err(|e| AIError::NetworkError(e.to_string()))?;
     let model = config.get_model();
 
-    match config.provider {
-        AIProvider::Claude => chat_claude(&client, config, model, messages).await,
-        AIProvider::OpenAI | AIProvider::DeepSeek | AIProvider::Glm | AIProvider::MiniMax | AIProvider::Kimi => {
+    let result = match config.provider {
+        AIProvider::Qwen => chat_qwen(&client, config, model, messages).await,
+        AIProvider::DeepSeek | AIProvider::Glm | AIProvider::MiniMax | AIProvider::Kimi => {
             chat_openai_format(&client, config, model, messages).await
         }
-        AIProvider::Qwen => chat_qwen(&client, config, model, messages).await,
-    }
-}
-
-/// Claude API 调用
-async fn chat_claude(
-    client: &Client,
-    config: &AIConfig,
-    model: &str,
-    messages: Vec<ChatMessage>,
-) -> Result<String, AIError> {
-    let url = format!("{}/v1/messages", config.get_base_url());
-
-    // Claude 需要单独的系统消息
-    let system_msg = messages.iter()
-        .find(|m| m.role == "system")
-        .map(|m| m.content.clone())
-        .unwrap_or_default();
-
-    let user_messages: Vec<ChatMessage> = messages.iter()
-        .filter(|m| m.role != "system")
-        .cloned()
-        .collect();
-
-    #[derive(Serialize)]
-    struct ClaudeRequest {
-        model: String,
-        max_tokens: u32,
-        #[serde(skip_serializing_if = "String::is_empty")]
-        system: String,
-        messages: Vec<ChatMessage>,
-    }
-
-    let request = ClaudeRequest {
-        model: model.to_string(),
-        max_tokens: 4096,
-        system: system_msg,
-        messages: user_messages,
     };
 
-    let response = client
-        .post(&url)
-        .header("x-api-key", &config.api_key)
-        .header("anthropic-version", "2023-06-01")
-        .header("Content-Type", "application/json")
-        .json(&request)
-        .send()
-        .await?;
-
-    if !response.status().is_success() {
-        let error_text = response.text().await?;
-        return Err(AIError::ApiError(error_text));
+    if let Err(ref e) = result {
+        eprintln!("[AI] request failed: {}", e);
+    } else {
+        eprintln!("[AI] request succeeded");
     }
 
-    let claude_response: ClaudeResponse = response.json().await?;
-    let text = claude_response.content.first()
-        .map(|c| c.text.clone())
-        .ok_or_else(|| AIError::ParseError("No content in response".to_string()))?;
-
-    Ok(text)
+    result
 }
 
-/// OpenAI 格式 API 调用（适用于 OpenAI、DeepSeek、GLM、MiniMax、Kimi）
+/// OpenAI 格式 API 调用（适用于 DeepSeek、GLM、MiniMax、Kimi）
 async fn chat_openai_format(
     client: &Client,
     config: &AIConfig,
@@ -253,7 +185,6 @@ async fn chat_openai_format(
     messages: Vec<ChatMessage>,
 ) -> Result<String, AIError> {
     let endpoint = match config.provider {
-        AIProvider::OpenAI => "/v1/chat/completions",
         AIProvider::DeepSeek => "/v1/chat/completions",
         AIProvider::Glm => "/api/paas/v4/chat/completions",
         AIProvider::MiniMax => "/v1/chat/completions",
@@ -295,30 +226,37 @@ async fn chat_openai_format(
     Ok(text)
 }
 
-/// 通义千问 API 调用
+/// 通义千问 API 调用（使用 OpenAI 兼容模式）
 async fn chat_qwen(
     client: &Client,
     config: &AIConfig,
     model: &str,
     messages: Vec<ChatMessage>,
 ) -> Result<String, AIError> {
-    let url = format!("{}/api/v1/services/aigc/text-generation/generation", config.get_base_url());
+    // 使用 OpenAI 兼容模式端点
+    let url = format!("{}/compatible-mode/v1/chat/completions", config.get_base_url());
 
     #[derive(Serialize)]
-    struct QwenRequest {
+    struct OpenAIRequest {
         model: String,
-        input: QwenInput,
-    }
-
-    #[derive(Serialize)]
-    struct QwenInput {
         messages: Vec<ChatMessage>,
     }
 
-    let request = QwenRequest {
+    let request = OpenAIRequest {
         model: model.to_string(),
-        input: QwenInput { messages },
+        messages,
     };
+
+    let body_json = serde_json::to_string(&request).unwrap_or_default();
+    let api_key_preview = if config.api_key.len() > 8 {
+        format!("{}...{}", &config.api_key[..4], &config.api_key[config.api_key.len()-4..])
+    } else {
+        "***".to_string()
+    };
+
+    eprintln!("[AI-Qwen] POST {}", url);
+    eprintln!("[AI-Qwen] Authorization: Bearer {}", api_key_preview);
+    eprintln!("[AI-Qwen] Body length: {} bytes", body_json.len());
 
     let response = client
         .post(&url)
@@ -326,15 +264,40 @@ async fn chat_qwen(
         .header("Content-Type", "application/json")
         .json(&request)
         .send()
-        .await?;
+        .await
+        .map_err(|e| {
+            // 打印完整的错误链，方便排查 DNS/TLS/代理等问题
+            eprintln!("[AI-Qwen] send failed: {}", e);
+            if e.is_timeout() {
+                eprintln!("[AI-Qwen] cause: timeout");
+            } else if e.is_connect() {
+                eprintln!("[AI-Qwen] cause: connection error");
+            } else if e.is_request() {
+                eprintln!("[AI-Qwen] cause: request build error");
+            }
+            let mut source: Option<&dyn StdError> = e.source();
+            let mut depth = 0;
+            while let Some(cause) = source {
+                depth += 1;
+                eprintln!("[AI-Qwen] cause[{}]: {}", depth, cause);
+                source = cause.source();
+            }
+            e
+        })?;
+
+    eprintln!("[AI-Qwen] response status: {}", response.status());
 
     if !response.status().is_success() {
         let error_text = response.text().await?;
+        eprintln!("[AI-Qwen] error body: {}", error_text);
         return Err(AIError::ApiError(error_text));
     }
 
-    let qwen_response: QwenResponse = response.json().await?;
-    Ok(qwen_response.output.text)
+    let openai_response: OpenAIResponse = response.json().await?;
+    let text = openai_response.choices.first()
+        .map(|c| c.message.content.clone())
+        .ok_or_else(|| AIError::ParseError("No content in response".to_string()))?;
+    Ok(text)
 }
 
 /// 生成 HTML 课件
@@ -513,9 +476,12 @@ pub async fn generate_course_plan(
 /// 课程计划大纲（AI 生成输出）
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CoursePlanOutline {
+    #[serde(rename = "courseName", alias = "course_name")]
     pub course_name: String,
+    #[serde(rename = "targetLevel", alias = "target_level")]
     pub target_level: String,
     pub duration: String,
+    #[serde(rename = "teachingStyle", alias = "teaching_style")]
     pub teaching_style: String,
     pub chapters: Vec<ChapterPlanOutline>,
 }
@@ -523,7 +489,9 @@ pub struct CoursePlanOutline {
 /// 章节大纲
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ChapterPlanOutline {
+    #[serde(rename = "chapterIndex", alias = "chapter_index")]
     pub chapter_index: i32,
+    #[serde(rename = "chapterName", alias = "chapter_name")]
     pub chapter_name: String,
     pub lessons: Vec<LessonPlanOutline>,
 }
@@ -531,7 +499,9 @@ pub struct ChapterPlanOutline {
 /// 课时大纲
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct LessonPlanOutline {
+    #[serde(rename = "lessonIndex", alias = "lesson_index")]
     pub lesson_index: i32,
+    #[serde(rename = "lessonName", alias = "lesson_name")]
     pub lesson_name: String,
     pub duration: String,
 }
@@ -593,9 +563,21 @@ pub async fn generate_structured_exercise(
 
     let response = chat(config, messages).await?;
 
+    // 打印原始响应以便调试
+    eprintln!("[AI] 原始练习题响应（前500字符）: {}", if response.len() > 500 { &response[..500] } else { &response });
+
+    // 清理响应内容：移除可能的 markdown 代码块标记
+    let cleaned_response = response
+        .trim()
+        .trim_start_matches("```json")
+        .trim_start_matches("```")
+        .trim_end_matches("```")
+        .trim();
+
     // 解析 JSON 结果
-    let exercises: Vec<StructuredExercise> = serde_json::from_str(&response)
-        .map_err(|e| AIError::ParseError(format!("解析练习题数据失败: {}", e)))?;
+    let exercises: Vec<StructuredExercise> = serde_json::from_str(cleaned_response)
+        .map_err(|e| AIError::ParseError(format!("解析练习题数据失败: {}，原始响应开头: {}", e,
+            if cleaned_response.len() > 100 { &cleaned_response[..100] } else { cleaned_response })))?;
 
     Ok(exercises)
 }
