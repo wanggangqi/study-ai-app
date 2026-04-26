@@ -4,6 +4,18 @@ import { Sidebar } from '../components/common/Sidebar';
 import { Card } from '../components/common/Card';
 import { Button } from '../components/common/Button';
 import { useCourseStore } from '../stores/courseStore';
+import { toast } from 'sonner';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
 const navItems = [
   { icon: '📚', label: '课程', path: '/' },
@@ -15,23 +27,24 @@ export const HomePage: React.FC = () => {
   const navigate = useNavigate();
   const { courses, loadCourses, deleteCourse } = useCourseStore();
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
 
   useEffect(() => {
     loadCourses();
   }, [loadCourses]);
 
-  const handleDeleteCourse = async (courseId: string, courseName: string) => {
-    if (!confirm(`确定要删除课程「${courseName}」吗？\n\n此操作将同时删除本地所有相关文件，包括课件、笔记等，且无法恢复。`)) {
-      return;
-    }
-    setDeletingId(courseId);
+  const handleDeleteCourse = async () => {
+    if (!deleteTarget) return;
+    setDeletingId(deleteTarget.id);
     try {
-      await deleteCourse(courseId);
+      await deleteCourse(deleteTarget.id);
+      toast.success(`课程「${deleteTarget.name}」已删除`);
     } catch (error) {
       console.error('删除课程失败:', error);
-      alert('删除课程失败，请重试');
+      toast.error('删除课程失败，请重试');
     } finally {
       setDeletingId(null);
+      setDeleteTarget(null);
     }
   };
 
@@ -54,18 +67,37 @@ export const HomePage: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {courses.map((course) => (
               <Card key={course.id} className="hover:shadow-lg transition-shadow relative">
-                <button
-                  className="absolute top-2 right-2 w-8 h-8 flex items-center justify-center rounded-full hover:bg-red-50 text-[#999999] hover:text-red-500 transition-colors"
-                  onClick={() => handleDeleteCourse(course.id, course.name)}
-                  disabled={deletingId === course.id}
-                  title="删除课程"
-                >
-                  {deletingId === course.id ? (
-                    <span className="text-xs">...</span>
-                  ) : (
-                    <span className="text-lg">🗑️</span>
-                  )}
-                </button>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <button
+                      className="absolute top-2 right-2 w-8 h-8 flex items-center justify-center rounded-full hover:bg-red-50 text-[#999999] hover:text-red-500 transition-colors"
+                      onClick={() => setDeleteTarget({ id: course.id, name: course.name })}
+                      disabled={deletingId === course.id}
+                      title="删除课程"
+                    >
+                      {deletingId === course.id ? (
+                        <span className="text-xs">...</span>
+                      ) : (
+                        <span className="text-lg">🗑️</span>
+                      )}
+                    </button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>确认删除</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        确定要删除课程「{deleteTarget?.name}」吗？
+                        此操作将同时删除本地所有相关文件，包括课件、笔记等，且无法恢复。
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel onClick={() => setDeleteTarget(null)}>取消</AlertDialogCancel>
+                      <AlertDialogAction onClick={handleDeleteCourse} className="bg-red-500 hover:bg-red-600">
+                        删除
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
                 <h3 className="font-bold text-lg text-[#588157] mb-2 pr-8">{course.name}</h3>
                 <p className="text-sm text-[#666666] mb-2">目标：{course.targetLevel}</p>
                 <p className="text-xs text-[#999999] mb-4">时长：{course.duration}</p>

@@ -1,15 +1,17 @@
 .consultant-agent {
   display: flex;
   flex-direction: column;
-  height: 100%;
+  min-height: 400px;
+  max-height: 70vh;
+  overflow-y: auto;
   padding: 1.5rem;
-  background: var(--card-bg, #ffffff);
-  border-radius: var(--radius-lg, 12px);
+  background: #ffffff;
+  border-radius: 12px;
 }
 
 .progress-bar {
   height: 4px;
-  background: var(--border-color, #e5e7eb);
+  background: #e5e7eb;
   border-radius: 2px;
   overflow: hidden;
   margin-bottom: 0.5rem;
@@ -17,13 +19,13 @@
 
 .progress-fill {
   height: 100%;
-  background: var(--primary-color, #6366f1);
+  background: #588157;
   transition: width 0.3s ease;
 }
 
 .step-indicator {
   font-size: 0.875rem;
-  color: var(--text-secondary, #6b7280);
+  color: #6b7280;
   text-align: center;
   margin-bottom: 2rem;
 }
@@ -37,14 +39,14 @@
 .question-text {
   font-size: 1.5rem;
   font-weight: 600;
-  color: var(--text-primary, #111827);
+  color: #111827;
   margin-bottom: 0.5rem;
   text-align: center;
 }
 
 .question-desc {
   font-size: 0.875rem;
-  color: var(--text-secondary, #6b7280);
+  color: #6b7280;
   text-align: center;
   margin-bottom: 2rem;
 }
@@ -58,23 +60,23 @@
 
 .option-btn {
   padding: 1rem;
-  border: 2px solid var(--border-color, #e5e7eb);
-  border-radius: var(--radius-md, 8px);
-  background: var(--card-bg, #ffffff);
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  background: #ffffff;
   font-size: 1rem;
-  color: var(--text-primary, #111827);
+  color: #111827;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .option-btn:hover {
-  border-color: var(--primary-color, #6366f1);
-  background: var(--primary-light, #eef2ff);
+  border-color: #588157;
+  background: #eef2ff;
 }
 
 .option-btn.selected {
-  border-color: var(--primary-color, #6366f1);
-  background: var(--primary-color, #6366f1);
+  border-color: #588157;
+  background: #588157;
   color: white;
 }
 
@@ -91,23 +93,23 @@
   flex-direction: column;
   align-items: center;
   padding: 1.25rem 1rem;
-  border: 2px solid var(--border-color, #e5e7eb);
-  border-radius: var(--radius-md, 8px);
-  background: var(--card-bg, #ffffff);
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  background: #ffffff;
   cursor: pointer;
   transition: all 0.2s ease;
   text-align: center;
 }
 
 .style-card:hover {
-  border-color: var(--primary-color, #6366f1);
+  border-color: #588157;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15);
+  box-shadow: 0 4px 12px rgba(88, 129, 87, 0.15);
 }
 
 .style-card.selected {
-  border-color: var(--primary-color, #6366f1);
-  background: var(--primary-light, #eef2ff);
+  border-color: #588157;
+  background: #eef2ff;
 }
 
 .style-card-icon {
@@ -117,13 +119,13 @@
 
 .style-card-name {
   font-weight: 600;
-  color: var(--text-primary, #111827);
+  color: #111827;
   margin-bottom: 0.25rem;
 }
 
 .style-card-desc {
   font-size: 0.75rem;
-  color: var(--text-secondary, #6b7280);
+  color: #6b7280;
 }
 
 /* 欢迎步骤样式 */
@@ -145,13 +147,13 @@
 .welcome-title {
   font-size: 1.75rem;
   font-weight: 600;
-  color: var(--text-primary, #111827);
+  color: #111827;
   margin-bottom: 0.75rem;
 }
 
 .welcome-desc {
   font-size: 1rem;
-  color: var(--text-secondary, #6b7280);
+  color: #6b7280;
   margin-bottom: 2rem;
 }
 
@@ -168,8 +170,8 @@
   align-items: center;
   gap: 0.75rem;
   padding: 0.75rem 1rem;
-  background: var(--bg-secondary, #f9fafb);
-  border-radius: var(--radius-md, 8px);
+  background: #f9fafb;
+  border-radius: 8px;
 }
 
 .feature-icon {
@@ -178,7 +180,7 @@
 
 .feature-text {
   font-size: 0.875rem;
-  color: var(--text-primary, #111827);
+  color: #111827;
 }
 
 /* 确认步骤样式 */
@@ -187,8 +189,8 @@
 }
 
 .confirm-summary {
-  background: var(--bg-secondary, #f9fafb);
-  border-radius: var(--radius-lg, 12px);
+  background: #f9fafb;
+  border-radius: 12px;
   padding: 1rem;
 }
 
@@ -196,7 +198,7 @@
   display: flex;
   align-items: center;
   padding: 1rem;
-  border-bottom: 1px solid var(--border-color, #e5e7eb);
+  border-bottom: 1px solid #e5e7eb;
   cursor: pointer;
   transition: background 0.2s ease;
 }
@@ -206,19 +208,19 @@
 }
 
 .summary-item:hover {
-  background: var(--card-bg, #ffffff);
-  border-radius: var(--radius-md, 8px);
+  background: #ffffff;
+  border-radius: 8px;
 }
 
 .summary-label {
   flex: 0 0 100px;
   font-weight: 500;
-  color: var(--text-secondary, #6b7280);
+  color: #6b7280;
 }
 
 .summary-value {
   flex: 1;
-  color: var(--text-primary, #111827);
+  color: #111827;
   font-weight: 500;
   text-align: left;
   padding-left: 0.5rem;
@@ -226,26 +228,26 @@
 
 .edit-btn {
   padding: 0.25rem 0.75rem;
-  border: 1px solid var(--border-color, #e5e7eb);
-  border-radius: var(--radius-sm, 4px);
-  background: var(--card-bg, #ffffff);
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
+  background: #ffffff;
   font-size: 0.75rem;
-  color: var(--text-secondary, #6b7280);
+  color: #6b7280;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .edit-btn:hover {
-  border-color: var(--primary-color, #6366f1);
-  color: var(--primary-color, #6366f1);
+  border-color: #588157;
+  color: #588157;
 }
 
 .answer-textarea {
   width: 100%;
   min-height: 120px;
   padding: 1rem;
-  border: 2px solid var(--border-color, #e5e7eb);
-  border-radius: var(--radius-md, 8px);
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
   font-size: 1rem;
   resize: vertical;
   margin-bottom: 1rem;
@@ -253,11 +255,11 @@
 
 .answer-textarea:focus {
   outline: none;
-  border-color: var(--primary-color, #6366f1);
+  border-color: #588157;
 }
 
 .error-message {
-  color: var(--error-color, #ef4444);
+  color: #ef4444;
   font-size: 0.875rem;
   text-align: center;
   padding: 0.5rem;
@@ -274,7 +276,7 @@
 .btn-primary,
 .btn-secondary {
   padding: 0.75rem 1.5rem;
-  border-radius: var(--radius-md, 8px);
+  border-radius: 8px;
   font-size: 1rem;
   font-weight: 500;
   cursor: pointer;
@@ -282,13 +284,13 @@
 }
 
 .btn-primary {
-  background: var(--primary-color, #6366f1);
+  background: #588157;
   color: white;
   border: none;
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: var(--primary-dark, #4f46e5);
+  background: #466946;
 }
 
 .btn-primary:disabled {
@@ -298,12 +300,12 @@
 
 .btn-secondary {
   background: transparent;
-  color: var(--text-primary, #111827);
-  border: 2px solid var(--border-color, #e5e7eb);
+  color: #111827;
+  border: 2px solid #e5e7eb;
 }
 
 .btn-secondary:hover {
-  background: var(--bg-secondary, #f9fafb);
+  background: #f9fafb;
 }
 
 /* 课程计划结果样式 */
@@ -320,17 +322,17 @@
 .result-header h2 {
   font-size: 1.5rem;
   font-weight: 600;
-  color: var(--text-primary, #111827);
+  color: #111827;
   margin-bottom: 0.5rem;
 }
 
 .result-header p {
-  color: var(--text-secondary, #6b7280);
+  color: #6b7280;
 }
 
 .plan-card {
-  background: var(--bg-secondary, #f9fafb);
-  border-radius: var(--radius-lg, 12px);
+  background: #f9fafb;
+  border-radius: 12px;
   padding: 1.5rem;
   margin-bottom: 2rem;
 }
@@ -339,7 +341,7 @@
   display: flex;
   justify-content: space-between;
   padding: 0.75rem 0;
-  border-bottom: 1px solid var(--border-color, #e5e7eb);
+  border-bottom: 1px solid #e5e7eb;
 }
 
 .plan-item:last-child {
@@ -348,11 +350,11 @@
 
 .plan-label {
   font-weight: 500;
-  color: var(--text-secondary, #6b7280);
+  color: #6b7280;
 }
 
 .plan-value {
-  color: var(--text-primary, #111827);
+  color: #111827;
   font-weight: 600;
 }
 

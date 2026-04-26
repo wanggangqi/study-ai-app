@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card } from '../common/Card';
-import { GitSetupStep } from './GitSetupStep';
-import { GiteeSetupStep } from './GiteeSetupStep';
+// import { GitSetupStep } from './GitSetupStep'; // 暂时禁用
+// import { GiteeSetupStep } from './GiteeSetupStep'; // 暂时禁用
 import { WorkspaceStep } from './WorkspaceStep';
 import { AISetupStep } from './AISetupStep';
-import { StyleSelectStep } from './StyleSelectStep';
+// import { StyleSelectStep } from './StyleSelectStep'; // 暂时禁用
 import { useConfigStore } from '../../stores/configStore';
 
 export interface SetupStepProps {
@@ -13,12 +13,13 @@ export interface SetupStepProps {
   onBack: () => void;
 }
 
+// 暂时禁用 Git、码云和教学风格步骤（后续启用）
 const STEPS = [
-  { id: 'git', title: 'Git 安装', description: '检查 Git 是否已安装并配置用户信息' },
-  { id: 'gitee', title: '码云账户', description: '配置码云账户信息' },
+  // { id: 'git', title: 'Git 安装', description: '检查 Git 是否已安装并配置用户信息' },
+  // { id: 'gitee', title: '码云账户', description: '配置码云账户信息' },
   { id: 'workspace', title: '工作空间', description: '设置本地工作空间路径' },
   { id: 'ai', title: 'AI 服务', description: '选择并配置 AI 服务商' },
-  { id: 'style', title: '教学风格', description: '选择喜欢的教学风格' },
+  // { id: 'style', title: '教学风格', description: '选择喜欢的教学风格' }, // 暂时禁用，创建课程时会选择
 ];
 
 export const SetupWizard: React.FC = () => {
@@ -53,23 +54,19 @@ export const SetupWizard: React.FC = () => {
 
     switch (currentStep) {
       case 0:
-        return <GitSetupStep {...stepProps} />;
-      case 1:
-        return <GiteeSetupStep {...stepProps} />;
-      case 2:
         return <WorkspaceStep {...stepProps} />;
-      case 3:
+      case 1:
         return <AISetupStep {...stepProps} />;
-      case 4:
-        return <StyleSelectStep {...stepProps} />;
+      // case 2:
+      //   return <StyleSelectStep {...stepProps} />; // 暂时禁用
       default:
         return null;
     }
   };
 
   return (
-    <div className="h-screen flex items-center justify-center bg-[#fefae0] p-8 overflow-hidden">
-      <div className="max-w-2xl w-full">
+    <div className="h-screen overflow-y-auto bg-[#fefae0] p-8">
+      <div className="max-w-2xl w-full mx-auto">
         <div className="text-center mb-8">
           <h1 className="text-2xl font-bold text-[#588157] mb-2">欢迎使用智学伴侣</h1>
           <p className="text-[#666666]">让我们先完成一些基本配置</p>

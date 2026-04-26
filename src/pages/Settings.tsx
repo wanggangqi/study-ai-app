@@ -6,6 +6,7 @@ import { Card } from '../components/common/Card';
 import { Input } from '../components/common/Input';
 import { Button } from '../components/common/Button';
 import { useConfigStore } from '../stores/configStore';
+import { toast } from 'sonner';
 import type { AIProvider } from '../types';
 
 const navItems = [
@@ -37,8 +38,8 @@ export const SettingsPage: React.FC = () => {
   const navigate = useNavigate();
   const {
     aiProvider, aiApiKey, aiModel, customBaseUrl,
-    gitUsername, gitEmail,
-    giteeUsername, giteeToken,
+    // gitUsername, gitEmail, // 暂时禁用
+    // giteeUsername, giteeToken, // 暂时禁用
     teachingStyle,
     setConfig, saveConfig,
   } = useConfigStore();
@@ -116,10 +117,10 @@ export const SettingsPage: React.FC = () => {
   const handleSave = async () => {
     try {
       await saveConfig();
-      alert('配置已保存');
+      toast.success('配置已保存');
     } catch (err) {
       console.error('Failed to save config:', err);
-      alert('保存失败');
+      toast.error('保存失败');
     }
   };
 
@@ -241,7 +242,7 @@ export const SettingsPage: React.FC = () => {
             </div>
           </Card>
 
-          {/* Git 配置 */}
+          {/* Git 配置 - 暂时禁用
           <Card>
             <h2 className="font-bold mb-4">Git 配置</h2>
             <div className="space-y-4">
@@ -260,7 +261,7 @@ export const SettingsPage: React.FC = () => {
             </div>
           </Card>
 
-          {/* 码云配置 */}
+          {/* 码云配置 - 暂时禁用
           <Card>
             <h2 className="font-bold mb-4">码云配置</h2>
             <div className="space-y-4">
@@ -279,6 +280,7 @@ export const SettingsPage: React.FC = () => {
               />
             </div>
           </Card>
+          */}
 
           {/* 教学风格 */}
           <Card>

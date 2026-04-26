@@ -94,11 +94,6 @@ export function ConsultantAgent({ onCoursePlanGenerated }: ConsultantAgentProps)
     }
   }, []);
 
-  const handleRestart = () => {
-    setCurrentStep(0);
-    setAnswers({});
-  };
-
   const canProceed = () => {
     if (currentStepType === 'welcome') return true;
     if (currentStepType === 'base') return true; // base is optional

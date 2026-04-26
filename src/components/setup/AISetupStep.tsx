@@ -160,25 +160,21 @@ export const AISetupStep: React.FC<SetupStepProps> = ({ onNext, onBack }) => {
       <div className="space-y-6">
         {/* 服务商选择 */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-3">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
             选择 AI 服务商
           </label>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+          <select
+            className="w-full border border-gray-300 rounded-md px-3 py-2 bg-white"
+            value={selectedProvider}
+            onChange={(e) => handleProviderSelect(e.target.value)}
+          >
+            <option value="">请选择 AI 服务商</option>
             {AI_PROVIDERS.map((provider) => (
-              <button
-                key={provider.id}
-                onClick={() => handleProviderSelect(provider.id)}
-                className={`p-3 rounded-lg border-2 transition-all text-left ${
-                  selectedProvider === provider.id
-                    ? 'border-primary bg-primary/5'
-                    : 'border-gray-200 hover:border-gray-300'
-                }`}
-              >
-                <span className="text-2xl">{provider.icon}</span>
-                <span className="block mt-1 text-sm font-medium">{provider.name}</span>
-              </button>
+              <option key={provider.id} value={provider.id}>
+                {provider.name}
+              </option>
             ))}
-          </div>
+          </select>
         </div>
 
         {/* 模型 */}

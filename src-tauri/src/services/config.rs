@@ -48,13 +48,10 @@ pub struct AppConfig {
 
 /// 获取应用数据目录
 fn get_app_data_dir() -> PathBuf {
-    std::env::var("LOCALAPPDATA")
-        .map(|p| std::path::Path::new(&p).join("com.studymate.app").join("localData"))
-        .unwrap_or_else(|_| {
-            dirs::data_local_dir()
-                .unwrap_or_else(|| PathBuf::from("."))
-                .join("StudyMate")
-        })
+    // 使用用户主目录下的 .study-ai-app 目录
+    dirs::home_dir()
+        .unwrap_or_else(|| PathBuf::from("."))
+        .join(".study-ai-app")
 }
 
 /// 获取配置文件路径

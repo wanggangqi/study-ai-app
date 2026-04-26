@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { Group, Panel, Separator } from 'react-resizable-panels';
 import { Card } from '../components/common/Card';
 import { Button } from '../components/common/Button';
 import { Sidebar } from '../components/common/Sidebar';
@@ -195,190 +196,200 @@ export const LearningPage: React.FC = () => {
         </div>
       </header>
 
-      {/* 三栏内容区 */}
-      <div className="flex flex-1 overflow-hidden">
+      {/* 三栏内容区 - 可拖拽调整宽度 */}
+      <Group orientation="horizontal" className="flex flex-1">
         {/* 左侧导航栏 - 课程大纲 */}
-        <aside className="w-64 bg-[#f5ebe0] border-r border-gray-200 overflow-y-auto flex-shrink-0">
-          <div className="p-4">
-            <h2 className="font-bold text-[#588157] mb-4 px-2">
-              课程大纲
-            </h2>
-            <div className="space-y-3">
-              {currentCourse.chapters?.map((chapter: ChapterWithLessons, chapterIndex: number) => (
-                <div key={chapter.id}>
-                  <div className="px-2 py-2 text-sm font-medium text-[#666666] flex items-center gap-2">
-                    <span className="text-[#588157]">第{chapterIndex + 1}章</span>
-                    <span className="truncate">{chapter.name}</span>
-                  </div>
-                  <div className="space-y-1">
-                    {chapter.lessons?.map((lesson: Lesson) => {
-                      const isActive = currentLesson?.id === lesson.id;
-                      const isCompleted = lesson.status === 'completed';
-                      const isInProgress = lesson.status === 'in_progress';
+        <Panel defaultSize="20%" minSize="15%" maxSize="35%" className="flex-shrink-0">
+          <aside className="h-full bg-[#f5ebe0] border-r border-gray-200 overflow-y-auto">
+            <div className="p-4">
+              <h2 className="font-bold text-[#588157] mb-4 px-2">
+                课程大纲
+              </h2>
+              <div className="space-y-3">
+                {currentCourse.chapters?.map((chapter: ChapterWithLessons, chapterIndex: number) => (
+                  <div key={chapter.id}>
+                    <div className="px-2 py-2 text-sm font-medium text-[#666666] flex items-center gap-2">
+                      <span className="text-[#588157] flex-shrink-0">第{chapterIndex + 1}章</span>
+                      <span className="truncate">{chapter.name}</span>
+                    </div>
+                    <div className="space-y-1">
+                      {chapter.lessons?.map((lesson: Lesson) => {
+                        const isActive = currentLesson?.id === lesson.id;
+                        const isCompleted = lesson.status === 'completed';
+                        const isInProgress = lesson.status === 'in_progress';
 
-                      return (
-                        <button
-                          key={lesson.id}
-                          onClick={() => handleSelectLesson(lesson, chapter)}
-                          className={`w-full text-left px-4 py-2 text-sm rounded-md transition-all ${
-                            isActive
-                              ? 'bg-[#588157] text-white shadow-sm'
-                              : isCompleted
-                              ? 'text-green-600 bg-green-50 hover:bg-green-100'
-                              : isInProgress
-                              ? 'text-[#588157] bg-[#588157]/10 hover:bg-[#588157]/20'
-                              : 'text-[#999999] hover:bg-white/50'
-                          }`}
-                        >
-                          <span className="mr-2 flex-shrink-0">
-                            {isCompleted ? (
-                              '✓'
-                            ) : isInProgress ? (
-                              '▶'
-                            ) : (
-                              '○'
-                            )}
-                          </span>
-                          <span className="truncate">{lesson.name}</span>
-                        </button>
-                      );
-                    })}
+                        return (
+                          <button
+                            key={lesson.id}
+                            onClick={() => handleSelectLesson(lesson, chapter)}
+                            className={`w-full text-left px-4 py-2 text-sm rounded-md transition-all ${
+                              isActive
+                                ? 'bg-[#588157] text-white shadow-sm'
+                                : isCompleted
+                                ? 'text-green-600 bg-green-50 hover:bg-green-100'
+                                : isInProgress
+                                ? 'text-[#588157] bg-[#588157]/10 hover:bg-[#588157]/20'
+                                : 'text-[#999999] hover:bg-white/50'
+                            }`}
+                          >
+                            <span className="mr-2 flex-shrink-0">
+                              {isCompleted ? (
+                                '✓'
+                              ) : isInProgress ? (
+                                '▶'
+                              ) : (
+                                '○'
+                              )}
+                            </span>
+                            <span className="truncate">{lesson.name}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-          </div>
-        </aside>
+          </aside>
+        </Panel>
+
+        <Separator className="w-1 bg-gray-200 hover:bg-[#588157] cursor-col-resize transition-colors" />
 
         {/* 中间内容区 - 课件展示 */}
-        <main className="flex-1 p-6 overflow-y-auto bg-gray-50">
-          <Card className="h-full min-h-[600px] flex flex-col">
-            {currentLesson ? (
-              <>
-                {/* 课件内容区 */}
-                <div className="flex-1 overflow-y-auto p-6">
-                  <CoursewareViewer
-                    lessonId={currentLesson.id}
-                    content={currentLessonContent}
-                  />
-                </div>
+        <Panel defaultSize="55%" minSize="30%">
+          <main className="h-full p-6 overflow-y-auto bg-gray-50">
+            <Card className="h-full min-h-[600px] flex flex-col">
+              {currentLesson ? (
+                <>
+                  {/* 课件内容区 */}
+                  <div className="flex-1 overflow-y-auto p-6">
+                    <CoursewareViewer
+                      lessonId={currentLesson.id}
+                      content={currentLessonContent}
+                    />
+                  </div>
 
-                {/* 底部操作区 */}
-                <div className="border-t border-gray-200 p-4 bg-white">
-                  <div className="flex items-center justify-between">
-                    {/* 左侧：导航按钮 */}
-                    <div className="flex gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={handlePrevLesson}
-                        disabled={!prevLesson}
-                      >
-                        ← 上一课
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={handleNextLesson}
-                        disabled={!nextLesson}
-                      >
-                        下一课 →
-                      </Button>
-                    </div>
+                  {/* 底部操作区 */}
+                  <div className="border-t border-gray-200 p-4 bg-white">
+                    <div className="flex items-center justify-between">
+                      {/* 左侧：导航按钮 */}
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={handlePrevLesson}
+                          disabled={!prevLesson}
+                        >
+                          ← 上一课
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={handleNextLesson}
+                          disabled={!nextLesson}
+                        >
+                          下一课 →
+                        </Button>
+                      </div>
 
-                    {/* 中间：操作按钮 */}
-                    <div className="flex gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={handleMarkComplete}
-                        disabled={currentLesson.status === 'completed'}
-                      >
-                        {currentLesson.status === 'completed'
-                          ? '✓ 已完成'
-                          : '标记完成'}
-                      </Button>
+                      {/* 中间：操作按钮 */}
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={handleMarkComplete}
+                          disabled={currentLesson.status === 'completed'}
+                        >
+                          {currentLesson.status === 'completed'
+                            ? '✓ 已完成'
+                            : '标记完成'}
+                        </Button>
+                      </div>
                     </div>
                   </div>
+                </>
+              ) : (
+                <div className="flex-1 flex items-center justify-center text-[#999999]">
+                  <div className="text-center">
+                    <div className="text-6xl mb-4">📖</div>
+                    <p className="text-lg mb-2">选择一个课时开始学习</p>
+                    <p className="text-sm">点击左侧课程大纲中的课时</p>
+                  </div>
                 </div>
-              </>
-            ) : (
-              <div className="flex-1 flex items-center justify-center text-[#999999]">
-                <div className="text-center">
-                  <div className="text-6xl mb-4">📖</div>
-                  <p className="text-lg mb-2">选择一个课时开始学习</p>
-                  <p className="text-sm">点击左侧课程大纲中的课时</p>
-                </div>
-              </div>
-            )}
-          </Card>
-        </main>
+              )}
+            </Card>
+          </main>
+        </Panel>
+
+        <Separator className="w-1 bg-gray-200 hover:bg-[#588157] cursor-col-resize transition-colors" />
 
         {/* 右侧边栏 - 练习题和答疑 */}
-        <aside className="w-80 bg-[#f5ebe0] border-l border-gray-200 flex flex-col overflow-hidden flex-shrink-0">
-          {currentLesson && currentCourse ? (
-            <div className="flex-1 flex flex-col overflow-hidden">
-              <div className="p-4 border-b border-gray-200 bg-white">
-                <h3 className="font-bold text-[#588157]">学习助手</h3>
-                <p className="text-xs text-gray-500 mt-1 truncate">
-                  {currentCourse.name} / {currentLesson.name}
+        <Panel defaultSize="25%" minSize="15%" maxSize="40%" className="flex-shrink-0 overflow-hidden">
+          <aside className="h-full bg-[#f5ebe0] border-l border-gray-200 flex flex-col overflow-hidden">
+            {currentLesson && currentCourse ? (
+              <div className="flex-1 flex flex-col overflow-hidden">
+                <div className="p-4 border-b border-gray-200 bg-white">
+                  <h3 className="font-bold text-[#588157]">学习助手</h3>
+                  <p className="text-xs text-gray-500 mt-1 truncate">
+                    {currentCourse.name} / {currentLesson.name}
+                  </p>
+                </div>
+                {/* 标签切换 */}
+                <div className="flex border-b border-gray-200 bg-gray-50">
+                  <button
+                    className={`flex-1 px-4 py-2.5 text-sm font-medium transition-colors ${
+                      rightSidebarTab === 'exercise'
+                        ? 'text-[#588157] border-b-2 border-[#588157] bg-white'
+                        : 'text-gray-500 hover:text-gray-700'
+                    }`}
+                    onClick={() => setRightSidebarTab('exercise')}
+                  >
+                    练习题
+                  </button>
+                  <button
+                    className={`flex-1 px-4 py-2.5 text-sm font-medium transition-colors ${
+                      rightSidebarTab === 'chat'
+                        ? 'text-[#588157] border-b-2 border-[#588157] bg-white'
+                        : 'text-gray-500 hover:text-gray-700'
+                    }`}
+                    onClick={() => setRightSidebarTab('chat')}
+                  >
+                    答疑
+                  </button>
+                </div>
+                {/* 标签内容 */}
+                <div className="flex-1 overflow-hidden">
+                  {rightSidebarTab === 'exercise' ? (
+                    <ExercisePanel
+                      lessonId={currentLesson.id}
+                      lessonContent={currentLessonContent || null}
+                    />
+                  ) : (
+                    <LearningChat
+                      courseId={currentCourse.id}
+                      lessonId={currentLesson.id}
+                      courseName={currentCourse.name}
+                      chapterName={currentChapter?.name || ''}
+                      lessonName={currentLesson.name}
+                      teachingStyle={currentCourse.teachingStyle}
+                      initialLessonHtml={currentLessonContent || undefined}
+                    />
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div className="flex-1 flex flex-col items-center justify-center text-[#999999] p-4">
+                <div className="text-4xl mb-4">💬</div>
+                <p className="text-center text-sm">
+                  选择一个课时后
+                  <br />
+                  可以使用学习助手
                 </p>
               </div>
-              {/* 标签切换 */}
-              <div className="flex border-b border-gray-200 bg-gray-50">
-                <button
-                  className={`flex-1 px-4 py-2.5 text-sm font-medium transition-colors ${
-                    rightSidebarTab === 'exercise'
-                      ? 'text-[#588157] border-b-2 border-[#588157] bg-white'
-                      : 'text-gray-500 hover:text-gray-700'
-                  }`}
-                  onClick={() => setRightSidebarTab('exercise')}
-                >
-                  练习题
-                </button>
-                <button
-                  className={`flex-1 px-4 py-2.5 text-sm font-medium transition-colors ${
-                    rightSidebarTab === 'chat'
-                      ? 'text-[#588157] border-b-2 border-[#588157] bg-white'
-                      : 'text-gray-500 hover:text-gray-700'
-                  }`}
-                  onClick={() => setRightSidebarTab('chat')}
-                >
-                  答疑
-                </button>
-              </div>
-              {/* 标签内容 */}
-              <div className="flex-1 overflow-hidden">
-                {rightSidebarTab === 'exercise' ? (
-                  <ExercisePanel
-                    lessonId={currentLesson.id}
-                    lessonContent={currentLessonContent || null}
-                  />
-                ) : (
-                  <LearningChat
-                    courseId={currentCourse.id}
-                    lessonId={currentLesson.id}
-                    courseName={currentCourse.name}
-                    chapterName={currentChapter?.name || ''}
-                    lessonName={currentLesson.name}
-                    teachingStyle={currentCourse.teachingStyle}
-                    initialLessonHtml={currentLessonContent || undefined}
-                  />
-                )}
-              </div>
-            </div>
-          ) : (
-            <div className="flex-1 flex flex-col items-center justify-center text-[#999999] p-4">
-              <div className="text-4xl mb-4">💬</div>
-              <p className="text-center text-sm">
-                选择一个课时后
-                <br />
-                可以使用学习助手
-              </p>
-            </div>
-          )}
-        </aside>
-      </div>
+            )}
+          </aside>
+        </Panel>
+      </Group>
     </div>
   );
 };

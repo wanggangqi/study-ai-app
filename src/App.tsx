@@ -11,6 +11,7 @@ import { useAuthStore } from './stores/authStore';
 import { useConfigStore } from './stores/configStore';
 import { AdminPanel } from './components/admin/AdminPanel';
 import { StartupLoading } from './components/common/StartupLoading';
+import { Toaster } from 'sonner';
 
 // 快捷键监听组件
 const AdminShortcutHandler: React.FC<{ onTrigger: () => void }> = ({ onTrigger }) => {
@@ -57,12 +58,14 @@ const App: React.FC = () => {
   useEffect(() => {
     const initialize = async () => {
       try {
+        // TODO: 暂时禁用授权检查，后续启用时取消注释
         // 检查授权状态（包含机器码哈希，一次调用即可）
-        const status = await invoke<{ is_licensed: boolean; expire_at?: string; error_message?: string; machine_hash?: string }>('get_license_status_command');
-
-        if (status.is_licensed && status.expire_at && status.machine_hash) {
-          setAuthorized(status.expire_at, status.machine_hash);
-        }
+        // const status = await invoke<{ is_licensed: boolean; expire_at?: string; error_message?: string; machine_hash?: string }>('get_license_status_command');
+        // if (status.is_licensed && status.expire_at && status.machine_hash) {
+        //   setAuthorized(status.expire_at, status.machine_hash);
+        // }
+        // 暂时直接标记为已授权，跳过密钥验证
+        setAuthorized('2099-12-31', 'disabled');
 
         // 加载配置
         await loadConfig();
@@ -99,6 +102,7 @@ const App: React.FC = () => {
   // 已授权时的路由
   return (
     <>
+      <Toaster position="top-center" richColors />
       <AdminShortcutHandler onTrigger={openAdminPanel} />
 
       <Routes>

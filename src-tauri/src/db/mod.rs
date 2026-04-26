@@ -68,20 +68,16 @@ impl Database {
 
     /// 获取应用数据目录
     ///
-    /// 返回 `%LOCALAPPDATA%\com.studymate.app\localData`
+    /// 返回 `C:\Users\<user>\.study-ai-app`
     fn get_app_data_dir() -> PathBuf {
-        std::env::var("LOCALAPPDATA")
-            .map(|p| PathBuf::from(p).join("com.studymate.app").join("localData"))
-            .unwrap_or_else(|_| {
-                dirs::data_local_dir()
-                    .unwrap_or_else(|| PathBuf::from("."))
-                    .join("StudyMate")
-            })
+        dirs::home_dir()
+            .unwrap_or_else(|| PathBuf::from("."))
+            .join(".study-ai-app")
     }
 
     /// 获取数据库路径
     ///
-    /// 返回 `%LOCALAPPDATA%\com.studymate.app\localData\data.db`
+    /// 返回 `C:\Users\<user>\.study-ai-app\data.db`
     pub fn get_default_path() -> PathBuf {
         Self::get_app_data_dir().join("data.db")
     }
