@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 import { Sidebar } from '../components/common/Sidebar';
 import { Card } from '../components/common/Card';
 import { Button } from '../components/common/Button';
-import { message } from '@tauri-apps/plugin-dialog';
 import { ConsultantAgent } from '../components/consultant';
 import { CoursePlanOutline } from '../types';
 import { tauriService } from '../services/tauri';
@@ -60,44 +60,31 @@ export const ConsultantPage: React.FC = () => {
           });
         } catch (chaptersError) {
           console.error('创建章节和课时失败:', chaptersError);
-          await message(`课程"${coursePlan.courseName}"创建成功，但创建章节和课时失败。`, {
-            title: '警告',
-            kind: 'warning',
-          });
+          toast.error(`课程"${coursePlan.courseName}"创建成功，但创建章节和课时失败。`);
         }
 
-        // 创建码云仓库
-        try {
-          const syncResult = await tauriService.createCourseRepository(result.id);
-          if (syncResult.success) {
-            await message(`课程"${coursePlan.courseName}"创建成功！\n仓库地址：${syncResult.repoUrl}`, {
-              title: '课程创建成功',
-              kind: 'info',
-            });
-          } else {
-            console.warn('码云同步失败:', syncResult.message);
-            await message(`课程"${coursePlan.courseName}"创建成功，但码云同步失败。\n您可以稍后在设置中手动同步。`, {
-              title: '课程创建成功',
-              kind: 'warning',
-            });
-          }
-        } catch (syncError) {
-          console.error('码云同步失败:', syncError);
-          await message(`课程"${coursePlan.courseName}"创建成功，但码云同步失败。\n您可以稍后在设置中手动同步。`, {
-            title: '课程创建成功',
-            kind: 'warning',
-          });
-        }
+        // TODO: 码云同步功能暂时隐藏
+        // // 创建码云仓库
+        // try {
+        //   const syncResult = await tauriService.createCourseRepository(result.id);
+        //   if (syncResult.success) {
+        //     toast.success(`课程"${coursePlan.courseName}"创建成功！\n仓库地址：${syncResult.repoUrl}`);
+        //   } else {
+        //     console.warn('码云同步失败:', syncResult.message);
+        //     toast.warning(`课程"${coursePlan.courseName}"创建成功，但码云同步失败。\n您可以稍后在设置中手动同步。`);
+        //   }
+        // } catch (syncError) {
+        //   console.error('码云同步失败:', syncError);
+        //   toast.warning(`课程"${coursePlan.courseName}"创建成功，但码云同步失败。\n您可以稍后在设置中手动同步。`);
+        // }
 
+        toast.success(`课程"${coursePlan.courseName}"创建成功！`);
         // 导航到首页
         navigate('/');
       }
     } catch (error) {
       console.error('创建课程失败:', error);
-      await message(`创建课程失败：${error}`, {
-        title: '错误',
-        kind: 'error',
-      });
+      toast.error(`创建课程失败：${error}`);
     }
   };
 
@@ -134,6 +121,36 @@ export const ConsultantPage: React.FC = () => {
                 <span className="font-medium">{coursePlan.teachingStyle}</span>
               </div>
             </div>
+
+            {coursePlan.chapters && coursePlan.chapters.length > 0 && (
+              <div className="mb-6">
+                <h3 className="text-lg font-bold mb-4 text-[#588157]">课程大纲</h3>
+                <div className="space-y-4">
+                  {coursePlan.chapters.map((chapter) => (
+                    <div key={chapter.chapterIndex} className="border rounded-lg p-4">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="inline-block px-2 py-1 bg-[#588157] text-white text-xs rounded">
+                          第 {chapter.chapterIndex} 章
+                        </span>
+                        <span className="font-medium">{chapter.chapterName}</span>
+                      </div>
+                      {chapter.lessons && chapter.lessons.length > 0 && (
+                        <ul className="ml-4 mt-2 space-y-1">
+                          {chapter.lessons.map((lesson) => (
+                            <li key={lesson.lessonIndex} className="flex justify-between items-center text-sm text-[#666666]">
+                              <span>{lesson.lessonName}</span>
+                              {lesson.duration && (
+                                <span className="text-xs bg-gray-100 px-2 py-1 rounded">{lesson.duration}</span>
+                              )}
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             <div className="flex gap-4">
               <Button variant="secondary" className="flex-1" onClick={() => setCoursePlan(null)}>

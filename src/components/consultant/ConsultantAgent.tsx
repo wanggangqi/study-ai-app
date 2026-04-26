@@ -59,7 +59,6 @@ const TEACHING_STYLES = [
 export function ConsultantAgent({ onCoursePlanGenerated }: ConsultantAgentProps) {
   const [currentStep, setCurrentStep] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
-  const [coursePlan, setCoursePlan] = useState<CoursePlanOutline | null>(null);
 
   const { isLoading, error, generateCoursePlan } = useConsultant();
 
@@ -75,7 +74,6 @@ export function ConsultantAgent({ onCoursePlanGenerated }: ConsultantAgentProps)
       // 最后一步，生成课程计划
       const result = await generateCoursePlan(answers);
       if (result) {
-        setCoursePlan(result);
         onCoursePlanGenerated?.(result);
       }
     } else if (currentStep < STEPS.length - 1) {
@@ -99,7 +97,6 @@ export function ConsultantAgent({ onCoursePlanGenerated }: ConsultantAgentProps)
   const handleRestart = () => {
     setCurrentStep(0);
     setAnswers({});
-    setCoursePlan(null);
   };
 
   const canProceed = () => {
@@ -207,73 +204,6 @@ export function ConsultantAgent({ onCoursePlanGenerated }: ConsultantAgentProps)
     </div>
   );
 
-  // 渲染课程计划结果
-  const renderCoursePlanResult = () => {
-    const plan = coursePlan as CoursePlanOutline;
-    return (
-      <div className="consultant-agent course-plan-result">
-        <div className="result-header">
-          <h2>课程计划已生成</h2>
-          <p>根据您的需求，我为您定制了以下学习计划</p>
-        </div>
-
-        <div className="plan-card">
-          <div className="plan-item">
-            <span className="plan-label">课程名称</span>
-            <span className="plan-value">{plan.courseName}</span>
-          </div>
-          <div className="plan-item">
-            <span className="plan-label">目标水平</span>
-            <span className="plan-value">{plan.targetLevel}</span>
-          </div>
-          <div className="plan-item">
-            <span className="plan-label">学习时长</span>
-            <span className="plan-value">{plan.duration}</span>
-          </div>
-          <div className="plan-item">
-            <span className="plan-label">教学风格</span>
-            <span className="plan-value">{plan.teachingStyle}</span>
-          </div>
-        </div>
-
-        {'chapters' in plan && plan.chapters && plan.chapters.length > 0 && (
-          <div className="chapters-section">
-            <h3 className="chapters-title">课程大纲</h3>
-            <div className="chapters-list">
-              {plan.chapters.map((chapter, chapterIndex) => (
-                <div key={chapterIndex} className="chapter-item">
-                  <div className="chapter-header">
-                    <span className="chapter-number">第 {chapter.chapterIndex + 1} 章</span>
-                    <span className="chapter-name">{chapter.chapterName}</span>
-                  </div>
-                  {chapter.lessons && chapter.lessons.length > 0 && (
-                    <ul className="lessons-list">
-                      {chapter.lessons.map((lesson, lessonIndex) => (
-                        <li key={lessonIndex} className="lesson-item">
-                          <span className="lesson-name">{lesson.lessonName}</span>
-                          {lesson.duration && (
-                            <span className="lesson-duration">{lesson.duration}</span>
-                          )}
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        <div className="result-actions">
-          <button className="btn-secondary" onClick={handleRestart}>
-            重新制定
-          </button>
-          <button className="btn-primary">开始学习</button>
-        </div>
-      </div>
-    );
-  };
-
   // 渲染当前步骤内容
   const renderStepContent = () => {
     switch (currentStepType) {
@@ -293,10 +223,6 @@ export function ConsultantAgent({ onCoursePlanGenerated }: ConsultantAgentProps)
         return null;
     }
   };
-
-  if (coursePlan) {
-    return renderCoursePlanResult();
-  }
 
   return (
     <div className="consultant-agent">
