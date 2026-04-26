@@ -1,10 +1,12 @@
 //! 机器码生成服务
 //!
 //! 获取硬件特征信息（CPU ID、硬盘序列号、MAC地址）并生成唯一机器码
+//! 使用缓存机制避免重复调用 PowerShell 命令
 
 use base64::{engine::general_purpose::STANDARD as BASE64, Engine};
 use sha2::{Sha256, Digest};
 use std::process::Command;
+use std::sync::OnceLock;
 use thiserror::Error;
 
 #[derive(Error, Debug)]
@@ -19,23 +21,50 @@ pub enum MachineIdError {
     HardwareError(String),
 }
 
-/// 获取机器码
+/// 缓存的组合硬件信息
+static CACHED_HARDWARE_INFO: OnceLock<String> = OnceLock::new();
+
+/// 获取机器码（带缓存）
 ///
 /// 组合 CPU ID、硬盘序列号、MAC 地址，计算 SHA256 哈希
+/// 首次调用会执行 PowerShell 命令，后续调用直接返回缓存值
 pub fn get_machine_id() -> Result<String, MachineIdError> {
-    let cpu_id = get_cpu_id()?;
-    let disk_serial = get_disk_serial()?;
-    let mac_address = get_mac_address()?;
-
-    // 组合所有硬件信息
-    let combined = format!("{}|{}|{}", cpu_id, disk_serial, mac_address);
-
-    // 计算 SHA256 哈希
+    let combined = get_cached_hardware_info()?;
     let mut hasher = Sha256::new();
     hasher.update(combined.as_bytes());
     let result = hasher.finalize();
-
     Ok(BASE64.encode(result))
+}
+
+/// 获取机器码的原始哈希值（带缓存，用于密钥验证）
+///
+/// 首次调用会执行 PowerShell 命令，后续调用直接返回缓存值
+pub fn get_machine_hash() -> Result<String, MachineIdError> {
+    let combined = get_cached_hardware_info()?;
+    let mut hasher = Sha256::new();
+    hasher.update(combined.as_bytes());
+    let result = hasher.finalize();
+    Ok(hex::encode(result))
+}
+
+/// 获取缓存的硬件信息（首次调用会计算，后续直接返回）
+fn get_cached_hardware_info() -> Result<&'static str, MachineIdError> {
+    // 如果已缓存，直接返回
+    if let Some(cached) = CACHED_HARDWARE_INFO.get() {
+        return Ok(cached);
+    }
+
+    // 首次调用时计算
+    let cpu_id = get_cpu_id()?;
+    let disk_serial = get_disk_serial()?;
+    let mac_address = get_mac_address()?;
+    let combined = format!("{}|{}|{}", cpu_id, disk_serial, mac_address);
+
+    // 存入缓存（忽略已存在的情况）
+    let _ = CACHED_HARDWARE_INFO.set(combined);
+
+    // 返回缓存中的值
+    Ok(CACHED_HARDWARE_INFO.get().unwrap())
 }
 
 /// 获取 CPU ID
@@ -123,22 +152,6 @@ fn get_mac_address() -> Result<String, MachineIdError> {
     }
 
     Ok(mac)
-}
-
-/// 获取机器码的原始哈希值（用于密钥验证）
-pub fn get_machine_hash() -> Result<String, MachineIdError> {
-    let cpu_id = get_cpu_id()?;
-    let disk_serial = get_disk_serial()?;
-    let mac_address = get_mac_address()?;
-
-    let combined = format!("{}|{}|{}", cpu_id, disk_serial, mac_address);
-
-    let mut hasher = Sha256::new();
-    hasher.update(combined.as_bytes());
-    let result = hasher.finalize();
-
-    // 返回十六进制字符串
-    Ok(hex::encode(result))
 }
 
 #[cfg(test)]

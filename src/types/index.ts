@@ -1,5 +1,5 @@
-// AI 服务商类型（国内供应商）
-export type AIProvider = 'qwen' | 'deepseek' | 'glm' | 'minimax' | 'kimi';
+// AI 服务商类型（国内供应商 + 自定义）
+export type AIProvider = 'qwen' | 'deepseek' | 'glm' | 'minimax' | 'kimi' | 'custom';
 
 // 授权状态
 export interface AuthState {
@@ -17,6 +17,7 @@ export interface UserConfig {
   aiProvider: AIProvider;
   aiApiKey: string;
   aiModel: string;
+  customBaseUrl: string; // 自定义服务商的 API 地址
   gitUsername: string;
   gitEmail: string;
   teachingStyle: string;
@@ -143,9 +144,10 @@ export interface CoursePlanOutline {
 
 // 默认模型映射（国内供应商）
 export const DEFAULT_MODELS: Record<AIProvider, string> = {
-  qwen: 'qwen-plus',
+  qwen: 'qwen3.5-plus',
   deepseek: 'deepseek-chat',
-  glm: 'glm-4-flash',
-  minimax: 'abab6.5s-chat',
-  kimi: 'moonshot-v1-8k',
+  glm: 'glm-5',
+  minimax: 'M2.7-highspeed',
+  kimi: 'kimi-k2.5',
+  custom: '',
 };

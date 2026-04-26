@@ -36,6 +36,8 @@ pub struct AppConfig {
     pub ai_api_key: Option<String>,
     /// AI 模型
     pub ai_model: Option<String>,
+    /// 自定义 AI 服务商的 API 地址（仅 custom 服务商需要）
+    pub custom_base_url: Option<String>,
     /// Git 用户名
     pub git_username: Option<String>,
     /// Git 邮箱
@@ -117,6 +119,9 @@ pub fn update_config(updates: AppConfig) -> Result<AppConfig, ConfigError> {
     }
     if let Some(v) = updates.ai_model {
         config.ai_model = Some(v);
+    }
+    if let Some(v) = updates.custom_base_url {
+        config.custom_base_url = Some(v);
     }
     if let Some(v) = updates.git_username {
         config.git_username = Some(v);

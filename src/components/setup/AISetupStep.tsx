@@ -7,38 +7,20 @@ import { SetupStepProps } from './SetupWizard';
 
 // 国内 AI 服务商列表（移除国外供应商）
 const AI_PROVIDERS = [
-  { id: 'qwen', name: '通义千问 (阿里云)', icon: '🌐', baseUrl: 'https://dashscope.aliyuncs.com/compatible-mode/v1', models: [
-    { id: 'qwen-max', name: 'qwen-max (旗舰模型)' },
-    { id: 'qwen-plus', name: 'qwen-plus (主力模型)' },
-    { id: 'qwen-turbo', name: 'qwen-turbo (快速模型)' },
-    { id: 'qwen-long', name: 'qwen-long (长文本)' },
-  ] },
-  { id: 'deepseek', name: 'DeepSeek', icon: '🔮', baseUrl: 'https://api.deepseek.com', models: [
-    { id: 'deepseek-chat', name: 'deepseek-chat (对话模型)' },
-    { id: 'deepseek-reasoner', name: 'deepseek-reasoner (推理模型)' },
-  ] },
-  { id: 'glm', name: '智谱 GLM', icon: '✨', baseUrl: 'https://open.bigmodel.cn/api/paas/v4', models: [
-    { id: 'glm-4-plus', name: 'glm-4-plus (旗舰模型)' },
-    { id: 'glm-4-0520', name: 'glm-4-0520 (智能体模型)' },
-    { id: 'glm-4-flash', name: 'glm-4-flash (快速免费)' },
-    { id: 'glm-4-long', name: 'glm-4-long (长文本)' },
-  ] },
-  { id: 'minimax', name: 'MiniMax', icon: '🎯', baseUrl: 'https://api.minimax.chat/v1', models: [
-    { id: 'abab6.5s-chat', name: 'abab6.5s-chat (旗舰模型)' },
-    { id: 'abab6.5-chat', name: 'abab6.5-chat (主力模型)' },
-    { id: 'abab5.5-chat', name: 'abab5.5-chat (快速模型)' },
-  ] },
-  { id: 'kimi', name: 'Kimi (Moonshot)', icon: '🌙', baseUrl: 'https://api.moonshot.cn/v1', models: [
-    { id: 'moonshot-v1-8k', name: 'moonshot-v1-8k (8K上下文)' },
-    { id: 'moonshot-v1-32k', name: 'moonshot-v1-32k (32K上下文)' },
-    { id: 'moonshot-v1-128k', name: 'moonshot-v1-128k (128K上下文)' },
-  ] },
+  { id: 'qwen', name: '通义千问 (阿里云)', icon: '🌐', baseUrl: 'https://dashscope.aliyuncs.com/compatible-mode/v1', defaultModel: 'qwen3.5-plus' },
+  { id: 'deepseek', name: 'DeepSeek', icon: '🔮', baseUrl: 'https://api.deepseek.com', defaultModel: 'deepseek-chat' },
+  { id: 'glm', name: '智谱 GLM', icon: '✨', baseUrl: 'https://open.bigmodel.cn/api/paas/v4', defaultModel: 'glm-5' },
+  { id: 'minimax', name: 'MiniMax', icon: '🎯', baseUrl: 'https://api.minimax.chat/v1', defaultModel: 'M2.7-highspeed' },
+  { id: 'kimi', name: 'Kimi (Moonshot)', icon: '🌙', baseUrl: 'https://api.moonshot.cn/v1', defaultModel: 'kimi-k2.5' },
+  { id: 'custom', name: '自定义', icon: '⚙️', baseUrl: '', defaultModel: '' },
 ];
 
 export const AISetupStep: React.FC<SetupStepProps> = ({ onNext, onBack }) => {
   const [selectedProvider, setSelectedProvider] = useState('');
   const [apiKey, setApiKey] = useState('');
   const [selectedModel, setSelectedModel] = useState('');
+  const [customBaseUrl, setCustomBaseUrl] = useState('');
+  const [customModel, setCustomModel] = useState('');
   const [isValidating, setIsValidating] = useState(false);
   const [isTesting, setIsTesting] = useState(false);
   const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null);
@@ -46,8 +28,11 @@ export const AISetupStep: React.FC<SetupStepProps> = ({ onNext, onBack }) => {
   const { setConfig, saveConfig } = useConfigStore();
 
   const handleProviderSelect = (providerId: string) => {
+    const provider = AI_PROVIDERS.find(p => p.id === providerId);
     setSelectedProvider(providerId);
-    setSelectedModel(''); // 重置模型选择
+    setSelectedModel(provider?.defaultModel || ''); // 自动设置默认模型
+    setCustomBaseUrl('');
+    setCustomModel('');
     setError('');
     setTestResult(null);
   };
@@ -68,7 +53,12 @@ export const AISetupStep: React.FC<SetupStepProps> = ({ onNext, onBack }) => {
         data?: string;
         error?: string;
       }>('ai_verify_key_command', {
-        params: { provider: selectedProvider, api_key: apiKey },
+        params: {
+          provider: selectedProvider,
+          api_key: apiKey,
+          model: selectedProvider === 'custom' ? customModel : selectedModel,
+          base_url: selectedProvider === 'custom' ? customBaseUrl : null,
+        },
       });
 
       if (result.success && result.data !== 'invalid') {
@@ -84,6 +74,25 @@ export const AISetupStep: React.FC<SetupStepProps> = ({ onNext, onBack }) => {
   };
 
   const handleSubmit = async () => {
+    // 自定义服务商需要填写 baseUrl 和 model
+    if (selectedProvider === 'custom') {
+      if (!apiKey.trim() || !customBaseUrl.trim() || !customModel.trim()) {
+        return;
+      }
+      setIsValidating(true);
+      setError('');
+      setConfig({
+        aiProvider: 'custom',
+        aiApiKey: apiKey,
+        aiModel: customModel,
+        customBaseUrl: customBaseUrl,
+      });
+      await saveConfig();
+      setIsValidating(false);
+      onNext();
+      return;
+    }
+
     if (!selectedProvider || !apiKey.trim() || !selectedModel) {
       return;
     }
@@ -114,6 +123,7 @@ export const AISetupStep: React.FC<SetupStepProps> = ({ onNext, onBack }) => {
         params: {
           provider: selectedProvider,
           api_key: apiKey,
+          model: selectedProvider === 'custom' ? customModel : selectedModel,
         },
       });
 
@@ -171,29 +181,39 @@ export const AISetupStep: React.FC<SetupStepProps> = ({ onNext, onBack }) => {
           </div>
         </div>
 
-        {/* 模型选择 */}
-        {selectedProviderData && (
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-3">
-              选择模型
-            </label>
-            <select
-              className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
-              value={selectedModel}
-              onChange={(e) => setSelectedModel(e.target.value)}
-            >
-              <option value="">请选择模型</option>
-              {selectedProviderData.models.map((model) => (
-                <option key={model.id} value={model.id}>
-                  {model.name}
-                </option>
-              ))}
-            </select>
-          </div>
+        {/* 模型 */}
+        {selectedProviderData && selectedProvider !== 'custom' && (
+          <Input
+            label="模型"
+            type="text"
+            placeholder="输入模型名称"
+            value={selectedModel}
+            onChange={(e) => setSelectedModel(e.target.value)}
+          />
+        )}
+
+        {/* 自定义服务商配置 */}
+        {selectedProvider === 'custom' && (
+          <>
+            <Input
+              label="API 地址"
+              type="text"
+              placeholder="例如: https://api.example.com/v1"
+              value={customBaseUrl}
+              onChange={(e) => setCustomBaseUrl(e.target.value)}
+            />
+            <Input
+              label="模型名称"
+              type="text"
+              placeholder="例如: gpt-4o"
+              value={customModel}
+              onChange={(e) => setCustomModel(e.target.value)}
+            />
+          </>
         )}
 
         {/* API 地址显示 */}
-        {selectedProviderData && (
+        {selectedProviderData && selectedProvider !== 'custom' && (
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               API 地址
@@ -217,7 +237,7 @@ export const AISetupStep: React.FC<SetupStepProps> = ({ onNext, onBack }) => {
         />
 
         {/* 测试连接 */}
-        {selectedProvider && apiKey.trim() && (
+        {selectedProvider && selectedProvider !== 'custom' && apiKey.trim() && (
           <div className="flex items-center gap-3">
             <Button
               variant="outline"
@@ -244,7 +264,11 @@ export const AISetupStep: React.FC<SetupStepProps> = ({ onNext, onBack }) => {
         </Button>
         <Button
           onClick={handleSubmit}
-          disabled={!selectedProvider || !apiKey.trim() || !selectedModel || isValidating}
+          disabled={
+            selectedProvider === 'custom'
+              ? !apiKey.trim() || !customBaseUrl.trim() || !customModel.trim() || isValidating
+              : !selectedProvider || !apiKey.trim() || !selectedModel || isValidating
+          }
         >
           {isValidating ? '验证中...' : '下一步'}
         </Button>

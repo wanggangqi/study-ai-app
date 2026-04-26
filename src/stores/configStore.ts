@@ -18,6 +18,7 @@ const defaultConfig: UserConfig = {
   aiProvider: 'qwen',
   aiApiKey: '',
   aiModel: '',
+  customBaseUrl: '',
   gitUsername: '',
   gitEmail: '',
   teachingStyle: '',
@@ -40,6 +41,7 @@ export const useConfigStore = create<ConfigStore>((set, get) => ({
         ai_provider: string | null;
         ai_api_key: string | null;
         ai_model: string | null;
+        custom_base_url: string | null;
         git_username: string | null;
         git_email: string | null;
         teaching_style: string | null;
@@ -53,6 +55,7 @@ export const useConfigStore = create<ConfigStore>((set, get) => ({
         aiProvider: (config.ai_provider as UserConfig['aiProvider']) || 'qwen',
         aiApiKey: config.ai_api_key || '',
         aiModel: config.ai_model || '',
+        customBaseUrl: config.custom_base_url || '',
         gitUsername: config.git_username || '',
         gitEmail: config.git_email || '',
         teachingStyle: config.teaching_style || '',
@@ -76,6 +79,7 @@ export const useConfigStore = create<ConfigStore>((set, get) => ({
           ai_provider: state.aiProvider || null,
           ai_api_key: state.aiApiKey || null,
           ai_model: state.aiModel || null,
+          custom_base_url: state.customBaseUrl || null,
           git_username: state.gitUsername || null,
           git_email: state.gitEmail || null,
           teaching_style: state.teachingStyle || null,

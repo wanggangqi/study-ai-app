@@ -17,6 +17,8 @@ pub struct LicenseResult {
     pub expire_at: Option<String>,
     pub remaining_days: Option<i64>,
     pub error_message: Option<String>,
+    /// 当前机器码哈希（便于前端一次性获取）
+    pub machine_hash: Option<String>,
 }
 
 /// 获取当前机器码
@@ -39,15 +41,19 @@ pub fn get_machine_hash_command() -> Result<String, String> {
 /// * `license_key` - 用户输入的授权密钥
 ///
 /// # Returns
-/// 授权结果，包含授权状态信息
+/// 授权结果，包含授权状态信息和机器码哈希
 #[tauri::command]
 pub fn validate_license_command(license_key: String) -> Result<LicenseResult, String> {
+    // 获取机器码哈希（用于返回给前端）
+    let machine_hash = get_machine_hash().map_err(|e| e.to_string())?;
+
     match validate_license(&license_key) {
         Ok(status) => Ok(LicenseResult {
             is_licensed: true,
             expire_at: status.expire_at,
             remaining_days: status.remaining_days,
             error_message: None,
+            machine_hash: Some(machine_hash),
         }),
         Err(e) => {
             let message = match &e {
@@ -63,6 +69,7 @@ pub fn validate_license_command(license_key: String) -> Result<LicenseResult, St
                 expire_at: None,
                 remaining_days: None,
                 error_message: Some(message),
+                machine_hash: Some(machine_hash),
             })
         }
     }
@@ -115,21 +122,28 @@ pub fn generate_license_key_command(expire_date: String, machine_hash: Option<St
     Ok(signed)
 }
 
-/// 获取当前授权状态
+/// 获取当前授权状态（包含机器码哈希）
+///
+/// 合并获取授权状态和机器码哈希，减少 PowerShell 调用次数
 #[tauri::command]
 pub fn get_license_status_command() -> Result<LicenseResult, String> {
+    // 获取机器码哈希（缓存机制，只调用一次 PowerShell）
+    let machine_hash = get_machine_hash().map_err(|e| e.to_string())?;
+
     match get_license_status() {
         Ok(status) => Ok(LicenseResult {
             is_licensed: status.is_licensed,
             expire_at: status.expire_at,
             remaining_days: status.remaining_days,
             error_message: status.error_message,
+            machine_hash: Some(machine_hash),
         }),
         Err(e) => Ok(LicenseResult {
             is_licensed: false,
             expire_at: None,
             remaining_days: None,
             error_message: Some(format!("获取授权状态失败：{}", e)),
+            machine_hash: Some(machine_hash),
         }),
     }
 }

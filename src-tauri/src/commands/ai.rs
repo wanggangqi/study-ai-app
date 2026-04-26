@@ -23,6 +23,7 @@ pub struct AIChatParams {
     pub provider: String,
     pub api_key: String,
     pub model: Option<String>,
+    pub base_url: Option<String>,
     pub messages: Vec<ChatMessageParams>,
 }
 
@@ -48,6 +49,7 @@ pub struct AIGenerateLessonParams {
     pub provider: String,
     pub api_key: String,
     pub model: Option<String>,
+    pub base_url: Option<String>,
     pub course_name: String,
     pub chapter_name: String,
     pub lesson_name: String,
@@ -60,6 +62,7 @@ pub struct AIGenerateExerciseParams {
     pub provider: String,
     pub api_key: String,
     pub model: Option<String>,
+    pub base_url: Option<String>,
     pub lesson_content: String,
 }
 
@@ -69,6 +72,7 @@ pub struct AIAnalyzeAnswersParams {
     pub provider: String,
     pub api_key: String,
     pub model: Option<String>,
+    pub base_url: Option<String>,
     pub exercise_content: String,
     pub user_answers: String,
 }
@@ -78,6 +82,8 @@ pub struct AIAnalyzeAnswersParams {
 pub struct AIVerifyKeyParams {
     pub provider: String,
     pub api_key: String,
+    pub model: Option<String>,
+    pub base_url: Option<String>,
 }
 
 /// AI 命令结果
@@ -106,6 +112,7 @@ fn parse_provider(provider_str: &str) -> Result<AIProvider, String> {
         "glm" => Ok(AIProvider::Glm),
         "minimax" => Ok(AIProvider::MiniMax),
         "kimi" => Ok(AIProvider::Kimi),
+        "custom" => Ok(AIProvider::Custom),
         _ => Err(format!("不支持的 AI 服务商: {}", provider_str)),
     }
 }
@@ -121,6 +128,11 @@ pub async fn ai_chat_command(params: AIChatParams) -> AIResult {
     let config = AIConfig::new(provider, params.api_key);
     let config = if let Some(model) = params.model {
         config.with_model(model)
+    } else {
+        config
+    };
+    let config = if let Some(base_url) = params.base_url {
+        config.with_base_url(base_url)
     } else {
         config
     };
@@ -146,6 +158,11 @@ pub async fn ai_generate_lesson_command(params: AIGenerateLessonParams) -> AIRes
     let config = AIConfig::new(provider, params.api_key);
     let config = if let Some(model) = params.model {
         config.with_model(model)
+    } else {
+        config
+    };
+    let config = if let Some(base_url) = params.base_url {
+        config.with_base_url(base_url)
     } else {
         config
     };
@@ -176,6 +193,11 @@ pub async fn ai_generate_exercise_command(params: AIGenerateExerciseParams) -> A
     } else {
         config
     };
+    let config = if let Some(base_url) = params.base_url {
+        config.with_base_url(base_url)
+    } else {
+        config
+    };
 
     match generate_exercise(&config, &params.lesson_content).await {
         Ok(html) => AIResult { success: true, data: Some(html), error: None },
@@ -200,6 +222,11 @@ pub async fn ai_analyze_answers_command(params: AIAnalyzeAnswersParams) -> AIAna
     let config = AIConfig::new(provider, params.api_key);
     let config = if let Some(model) = params.model {
         config.with_model(model)
+    } else {
+        config
+    };
+    let config = if let Some(base_url) = params.base_url {
+        config.with_base_url(base_url)
     } else {
         config
     };
@@ -231,6 +258,16 @@ pub async fn ai_verify_key_command(params: AIVerifyKeyParams) -> AIResult {
     };
 
     let config = AIConfig::new(provider, params.api_key);
+    let config = if let Some(model) = params.model {
+        config.with_model(model)
+    } else {
+        config
+    };
+    let config = if let Some(base_url) = params.base_url {
+        config.with_base_url(base_url)
+    } else {
+        config
+    };
 
     match verify_api_key(&config).await {
         Ok(valid) => AIResult {
@@ -248,6 +285,7 @@ pub struct AIGenerateStructuredExerciseParams {
     pub provider: String,
     pub api_key: String,
     pub model: Option<String>,
+    pub base_url: Option<String>,
     pub lesson_id: String,
     pub lesson_content: String,
 }
@@ -271,6 +309,11 @@ pub async fn ai_generate_structured_exercise_command(params: AIGenerateStructure
     let config = AIConfig::new(provider, params.api_key);
     let config = if let Some(model) = params.model {
         config.with_model(model)
+    } else {
+        config
+    };
+    let config = if let Some(base_url) = params.base_url {
+        config.with_base_url(base_url)
     } else {
         config
     };

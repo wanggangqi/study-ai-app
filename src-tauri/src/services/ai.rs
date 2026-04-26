@@ -7,7 +7,7 @@ use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
-/// AI 服务商类型（国内供应商）
+/// AI 服务商类型（国内供应商 + 自定义）
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum AIProvider {
@@ -16,6 +16,7 @@ pub enum AIProvider {
     Glm,
     MiniMax,
     Kimi,
+    Custom,
 }
 
 impl AIProvider {
@@ -27,17 +28,19 @@ impl AIProvider {
             AIProvider::Glm => "https://open.bigmodel.cn",
             AIProvider::MiniMax => "https://api.minimax.chat",
             AIProvider::Kimi => "https://api.moonshot.cn",
+            AIProvider::Custom => "", // 自定义需要用户提供
         }
     }
 
     /// 获取默认模型
     pub fn default_model(&self) -> &str {
         match self {
-            AIProvider::Qwen => "qwen-plus",
+            AIProvider::Qwen => "qwen3.5-plus",
             AIProvider::DeepSeek => "deepseek-chat",
-            AIProvider::Glm => "glm-4-flash",
-            AIProvider::MiniMax => "abab6.5s-chat",
-            AIProvider::Kimi => "moonshot-v1-8k",
+            AIProvider::Glm => "glm-5",
+            AIProvider::MiniMax => "M2.7-highspeed",
+            AIProvider::Kimi => "kimi-k2.5",
+            AIProvider::Custom => "", // 自定义需要用户提供
         }
     }
 }
@@ -163,7 +166,7 @@ pub async fn chat(config: &AIConfig, messages: Vec<ChatMessage>) -> Result<Strin
 
     let result = match config.provider {
         AIProvider::Qwen => chat_qwen(&client, config, model, messages).await,
-        AIProvider::DeepSeek | AIProvider::Glm | AIProvider::MiniMax | AIProvider::Kimi => {
+        AIProvider::DeepSeek | AIProvider::Glm | AIProvider::MiniMax | AIProvider::Kimi | AIProvider::Custom => {
             chat_openai_format(&client, config, model, messages).await
         }
     };

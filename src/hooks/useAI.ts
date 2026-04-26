@@ -53,15 +53,21 @@ export async function chatWithAI(
   messages: ChatMessage[],
   provider?: AIProvider,
   apiKey?: string,
-  model?: string
+  model?: string,
+  baseUrl?: string
 ): Promise<AIResult> {
   const config = useConfigStore.getState();
+
+  // 优先使用传入的 model，其次使用配置中的 aiModel（只有在非空时才使用）
+  const effectiveModel = model || (config.aiModel ? config.aiModel : null);
+  const effectiveBaseUrl = baseUrl || (config.customBaseUrl ? config.customBaseUrl : null);
 
   return invoke<AIResult>('ai_chat_command', {
     params: {
       provider: provider || config.aiProvider,
       api_key: apiKey || config.aiApiKey,
-      model: model || config.aiModel || null,
+      model: effectiveModel,
+      base_url: effectiveBaseUrl,
       messages,
     },
   });
@@ -77,15 +83,20 @@ export async function generateLessonHTML(
   teachingStyle: string,
   provider?: AIProvider,
   apiKey?: string,
-  model?: string
+  model?: string,
+  baseUrl?: string
 ): Promise<AIResult> {
   const config = useConfigStore.getState();
+
+  const effectiveModel = model || (config.aiModel ? config.aiModel : null);
+  const effectiveBaseUrl = baseUrl || (config.customBaseUrl ? config.customBaseUrl : null);
 
   return invoke<AIResult>('ai_generate_lesson_command', {
     params: {
       provider: provider || config.aiProvider,
       api_key: apiKey || config.aiApiKey,
-      model: model || config.aiModel || null,
+      model: effectiveModel,
+      base_url: effectiveBaseUrl,
       course_name: courseName,
       chapter_name: chapterName,
       lesson_name: lessonName,
@@ -101,15 +112,20 @@ export async function generateExerciseHTML(
   lessonContent: string,
   provider?: AIProvider,
   apiKey?: string,
-  model?: string
+  model?: string,
+  baseUrl?: string
 ): Promise<AIResult> {
   const config = useConfigStore.getState();
+
+  const effectiveModel = model || (config.aiModel ? config.aiModel : null);
+  const effectiveBaseUrl = baseUrl || (config.customBaseUrl ? config.customBaseUrl : null);
 
   return invoke<AIResult>('ai_generate_exercise_command', {
     params: {
       provider: provider || config.aiProvider,
       api_key: apiKey || config.aiApiKey,
-      model: model || config.aiModel || null,
+      model: effectiveModel,
+      base_url: effectiveBaseUrl,
       lesson_content: lessonContent,
     },
   });
@@ -123,15 +139,20 @@ export async function analyzeUserAnswers(
   userAnswers: string,
   provider?: AIProvider,
   apiKey?: string,
-  model?: string
+  model?: string,
+  baseUrl?: string
 ): Promise<AIAnalyzeResult> {
   const config = useConfigStore.getState();
+
+  const effectiveModel = model || (config.aiModel ? config.aiModel : null);
+  const effectiveBaseUrl = baseUrl || (config.customBaseUrl ? config.customBaseUrl : null);
 
   return invoke<AIAnalyzeResult>('ai_analyze_answers_command', {
     params: {
       provider: provider || config.aiProvider,
       api_key: apiKey || config.aiApiKey,
-      model: model || config.aiModel || null,
+      model: effectiveModel,
+      base_url: effectiveBaseUrl,
       exercise_content: exerciseContent,
       user_answers: userAnswers,
     },
@@ -143,12 +164,18 @@ export async function analyzeUserAnswers(
  */
 export async function verifyAPIKey(
   provider: AIProvider,
-  apiKey: string
+  apiKey: string,
+  baseUrl?: string
 ): Promise<AIResult> {
+  const config = useConfigStore.getState();
+
+  const effectiveBaseUrl = baseUrl || (provider === 'custom' && config.customBaseUrl ? config.customBaseUrl : null);
+
   return invoke<AIResult>('ai_verify_key_command', {
     params: {
       provider,
       api_key: apiKey,
+      base_url: effectiveBaseUrl,
     },
   });
 }
@@ -161,15 +188,20 @@ export async function generateStructuredExercise(
   lessonContent: string,
   provider?: AIProvider,
   apiKey?: string,
-  model?: string
+  model?: string,
+  baseUrl?: string
 ): Promise<AIStructuredExerciseResult> {
   const config = useConfigStore.getState();
+
+  const effectiveModel = model || (config.aiModel ? config.aiModel : null);
+  const effectiveBaseUrl = baseUrl || (config.customBaseUrl ? config.customBaseUrl : null);
 
   return invoke<AIStructuredExerciseResult>('ai_generate_structured_exercise_command', {
     params: {
       provider: provider || config.aiProvider,
       api_key: apiKey || config.aiApiKey,
-      model: model || config.aiModel || null,
+      model: effectiveModel,
+      base_url: effectiveBaseUrl,
       lesson_id: lessonId,
       lesson_content: lessonContent,
     },

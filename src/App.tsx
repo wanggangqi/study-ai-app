@@ -57,14 +57,11 @@ const App: React.FC = () => {
   useEffect(() => {
     const initialize = async () => {
       try {
-        // 获取机器码
-        const machineHash = await invoke<string>('get_machine_hash_command');
+        // 检查授权状态（包含机器码哈希，一次调用即可）
+        const status = await invoke<{ is_licensed: boolean; expire_at?: string; error_message?: string; machine_hash?: string }>('get_license_status_command');
 
-        // 检查授权状态
-        const status = await invoke<{ is_licensed: boolean; expire_at?: string; error_message?: string }>('get_license_status_command');
-
-        if (status.is_licensed && status.expire_at) {
-          setAuthorized(status.expire_at, machineHash);
+        if (status.is_licensed && status.expire_at && status.machine_hash) {
+          setAuthorized(status.expire_at, status.machine_hash);
         }
 
         // 加载配置
