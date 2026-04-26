@@ -334,7 +334,17 @@ pub async fn generate_lesson(
         ChatMessage { role: "user".to_string(), content: user_prompt },
     ];
 
-    chat(config, messages).await
+    let html = chat(config, messages).await?;
+
+    // 清理响应内容：移除可能的 markdown 代码块标记
+    let cleaned_html = html
+        .trim()
+        .trim_start_matches("```html")
+        .trim_start_matches("```")
+        .trim_end_matches("```")
+        .trim();
+
+    Ok(cleaned_html.to_string())
 }
 
 /// 生成练习题 HTML

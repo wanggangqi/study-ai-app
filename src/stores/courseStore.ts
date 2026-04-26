@@ -60,6 +60,7 @@ interface CourseStore {
   selectCourse: (courseId: string) => Promise<void>;
   selectChapter: (chapter: Chapter | null) => void;
   selectLesson: (lesson: Lesson | null) => void;
+  deleteCourse: (courseId: string) => Promise<void>;
   updateLessonStatus: (lessonId: string, status: Lesson['status']) => void;
   setLessonContent: (lessonId: string, content: string) => void;
   setExercises: (exercises: Exercise[]) => void;
@@ -84,7 +85,36 @@ export const useCourseStore = create<CourseStore>((set, get) => ({
     set({ isLoading: true });
     try {
       const courses = await tauriService.getCourses();
-      set({ courses, isLoading: false });
+
+      // 为每个课程加载章节和课时信息，用于计算进度
+      const coursesWithProgress = await Promise.all(
+        courses.map(async (course) => {
+          try {
+            const chapters = await tauriService.getChaptersByCourse(course.id);
+            let totalLessons = 0;
+            let completedLessons = 0;
+
+            // 统计每个章节的课时
+            for (const chapter of chapters) {
+              const lessons = await tauriService.getLessonsByChapter(chapter.id);
+              totalLessons += lessons.length;
+              completedLessons += lessons.filter((l) => l.status === 'completed').length;
+            }
+
+            return {
+              ...course,
+              totalLessons,
+              completedLessons,
+              progress: totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : 0,
+            };
+          } catch {
+            // 如果加载章节失败，返回原始课程数据
+            return course;
+          }
+        })
+      );
+
+      set({ courses: coursesWithProgress, isLoading: false });
     } catch (error) {
       console.error('Failed to load courses:', error);
       set({ isLoading: false });
@@ -134,6 +164,23 @@ export const useCourseStore = create<CourseStore>((set, get) => ({
 
   selectLesson: (lesson) => {
     set({ currentLesson: lesson });
+  },
+
+  deleteCourse: async (courseId) => {
+    try {
+      await tauriService.deleteCourse(courseId);
+      // 从本地状态中移除课程
+      set((state) => ({
+        courses: state.courses.filter((c) => c.id !== courseId),
+        // 如果删除的是当前选中的课程，清除选择
+        currentCourse: state.currentCourse?.id === courseId ? null : state.currentCourse,
+        currentChapter: null,
+        currentLesson: null,
+      }));
+    } catch (error) {
+      console.error('Failed to delete course:', error);
+      throw error;
+    }
   },
 
   updateLessonStatus: (lessonId, status) => {

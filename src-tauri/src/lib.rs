@@ -74,6 +74,7 @@ use commands::{
     // 同步命令
     sync_course_to_git_command,
     create_course_repository_command,
+    delete_course_with_files_command,
     save_lesson_file_command,
     ai_generate_course_plan_command,
     // AI 命令
@@ -176,6 +177,7 @@ pub fn run() {
             // 同步相关命令
             sync_course_to_git_command,
             create_course_repository_command,
+            delete_course_with_files_command,
             save_lesson_file_command,
             ai_generate_course_plan_command,
             // AI 相关命令

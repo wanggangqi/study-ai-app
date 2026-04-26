@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { Button } from '../common/Button';
-import { TeacherAgent } from '../teacher/TeacherAgent';
 import { chatWithAI } from '../../hooks/useAI';
+import { cleanMessageContent } from '../../hooks/useChat';
 import { useChatStore } from '../../stores/chatStore';
 import './LearningChat.css';
 
@@ -36,7 +36,6 @@ export const LearningChat: React.FC<LearningChatProps> = ({
   teachingStyle,
   initialLessonHtml,
 }) => {
-  const [showTeacherAgent, setShowTeacherAgent] = useState(false);
   const [userInput, setUserInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -216,11 +215,6 @@ ${initialLessonHtml ? `课件内容：\n${initialLessonHtml}` : ''}
     [messages, teachingStyle, courseName, chapterName, lessonName, initialLessonHtml, courseId, lessonId, addTeacherMessage]
   );
 
-  // 切换到 TeacherAgent（用于更复杂的功能）
-  const handleShowTeacherAgent = useCallback(() => {
-    setShowTeacherAgent(true);
-  }, []);
-
   // 键盘事件
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
@@ -231,21 +225,6 @@ ${initialLessonHtml ? `课件内容：\n${initialLessonHtml}` : ''}
     },
     [handleSendMessage]
   );
-
-  // 切换到 TeacherAgent 视图
-  if (showTeacherAgent) {
-    return (
-      <div className="learning-chat-full">
-        <TeacherAgent
-          courseName={courseName}
-          chapterName={chapterName}
-          lessonName={lessonName}
-          teachingStyle={teachingStyle}
-          initialLessonHtml={initialLessonHtml}
-        />
-      </div>
-    );
-  }
 
   return (
     <div className="learning-chat">
@@ -271,7 +250,7 @@ ${initialLessonHtml ? `课件内容：\n${initialLessonHtml}` : ''}
             key={idx}
             className={`chat-message ${msg.role === 'user' ? 'user' : 'assistant'}`}
           >
-            <div className="message-content">{msg.content}</div>
+            <div className="message-content">{cleanMessageContent(msg.content)}</div>
           </div>
         ))}
 
@@ -309,12 +288,6 @@ ${initialLessonHtml ? `课件内容：\n${initialLessonHtml}` : ''}
         </Button>
       </div>
 
-      {/* 展开完整功能按钮 */}
-      <div className="chat-footer">
-        <button className="expand-btn" onClick={handleShowTeacherAgent}>
-          展开完整功能（课件、练习、答疑）
-        </button>
-      </div>
     </div>
   );
 };

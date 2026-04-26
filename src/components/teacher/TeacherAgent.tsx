@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { generateLessonHTML, generateExerciseHTML, analyzeUserAnswers, chatWithAI } from '../../hooks/useAI';
+import { cleanMessageContent } from '../../hooks/useChat';
 import './TeacherAgent.css';
 
 interface TeacherAgentProps {
@@ -282,7 +283,7 @@ export function TeacherAgent({
                     key={idx}
                     className={`chat-message ${msg.role === 'user' ? 'user' : 'assistant'}`}
                   >
-                    <div className="message-content">{msg.content}</div>
+                    <div className="message-content">{cleanMessageContent(msg.content)}</div>
                   </div>
                 ))
               )}

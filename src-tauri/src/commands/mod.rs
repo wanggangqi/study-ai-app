@@ -91,6 +91,7 @@ pub use sync::{
     export_learning_records,
     sync_course_to_git_command,
     create_course_repository_command,
+    delete_course_with_files_command,
     save_lesson_file_command,
     ai_generate_course_plan_command,
     SyncResult,

@@ -10,7 +10,7 @@ use crate::db::operations::{
     Lesson,
     get_course_by_id, get_chapters_by_course, get_lessons_by_chapter,
     get_exercises_by_lesson, get_chat_messages_by_course,
-    get_lesson_by_id, update_lesson,
+    get_lesson_by_id, update_lesson, delete_course,
 };
 use crate::commands::database::DbState;
 use crate::services::git_ops::{
@@ -711,6 +711,57 @@ pub fn sync_course_to_git_command(
     course_id: String,
 ) -> Result<SyncResult, String> {
     sync_course_to_git_impl(&*db, &course_id)
+        .map_err(|e| e.to_string())
+}
+
+/// 删除课程及其本地文件（内部实现）
+pub(crate) fn delete_course_with_files_impl(
+    db: &DbState,
+    course_id: &str,
+) -> Result<(), SyncError> {
+    // 获取课程信息
+    let course = {
+        let database = db.0.lock().map_err(|e| SyncError::DbError(e.to_string()))?;
+        let guard = database.get_connection();
+        get_course_by_id(&guard, course_id)
+            .map_err(|e| SyncError::DbError(e.to_string()))?
+    };
+
+    // 获取工作空间路径
+    let config = load_config().map_err(|e| SyncError::ConfigError(e.to_string()))?;
+    let workspace_path = config.workspace_path
+        .ok_or(SyncError::WorkspaceNotConfigured)?;
+
+    // 计算课程仓库路径
+    let repo_name = to_gitee_repo_name(&course.name, &course.id);
+    let repo_path = PathBuf::from(&workspace_path).join(&repo_name);
+
+    // 删除本地仓库目录
+    if repo_path.exists() {
+        eprintln!("[Sync] 删除课程本地仓库: {}", repo_path.display());
+        fs::remove_dir_all(&repo_path)
+            .map_err(|e| SyncError::IoError(e))?;
+    }
+
+    // 从数据库删除课程
+    {
+        let database = db.0.lock().map_err(|e| SyncError::DbError(e.to_string()))?;
+        let guard = database.get_connection();
+        delete_course(&guard, course_id)
+            .map_err(|e| SyncError::DbError(e.to_string()))?;
+    }
+
+    eprintln!("[Sync] 课程删除成功: id={}, name={}", course_id, course.name);
+    Ok(())
+}
+
+/// 删除课程及其本地文件
+#[tauri::command]
+pub fn delete_course_with_files_command(
+    db: State<'_, DbState>,
+    course_id: String,
+) -> Result<(), String> {
+    delete_course_with_files_impl(&*db, &course_id)
         .map_err(|e| e.to_string())
 }
 

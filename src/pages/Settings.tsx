@@ -196,13 +196,27 @@ export const SettingsPage: React.FC = () => {
                 />
               )}
 
-              <Input
-                label="API 密钥"
-                type="password"
-                placeholder="输入你的 API 密钥"
-                value={aiApiKey}
-                onChange={(e) => setConfig({ aiApiKey: e.target.value })}
-              />
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">API 密钥</label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    placeholder="输入你的 API 密钥"
+                    value={aiApiKey}
+                    onChange={(e) => setConfig({ aiApiKey: e.target.value })}
+                    className="flex-1 border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                  />
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(aiApiKey);
+                    }}
+                    className="px-3 py-2 border border-gray-300 rounded-md hover:bg-gray-50 text-gray-700"
+                    title="复制"
+                  >
+                    📋
+                  </button>
+                </div>
+              </div>
 
               {/* 模型 - 输入框（仅预设服务商） */}
               {aiProvider !== 'custom' && (

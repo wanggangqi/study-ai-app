@@ -21,6 +21,44 @@ interface BackendCourse {
   status: number;
 }
 
+// 后端 Lesson 数据结构（snake_case, status 为 i32）
+interface BackendLesson {
+  id: string;
+  chapter_id: string;
+  lesson_index: number;
+  name: string;
+  duration: string | null;
+  status: number;
+  completed_at: string | null;
+  lesson_file: string | null;
+}
+
+// 课时状态映射：后端数值 -> 前端字符串
+const lessonStatusFromBackend = (status: number): Lesson['status'] => {
+  switch (status) {
+    case 0:
+      return 'not_started';
+    case 1:
+      return 'in_progress';
+    case 2:
+      return 'completed';
+    default:
+      return 'not_started';
+  }
+};
+
+// 转换后端课时数据为前端格式
+const transformLesson = (data: BackendLesson): Lesson => ({
+  id: data.id,
+  chapterId: data.chapter_id,
+  lessonIndex: data.lesson_index,
+  name: data.name,
+  duration: data.duration || '',
+  status: lessonStatusFromBackend(data.status),
+  completedAt: data.completed_at || undefined,
+  lessonFile: data.lesson_file || undefined,
+});
+
 // 课程状态映射：后端数值 -> 前端字符串
 const statusFromBackend = (status: number): Course['status'] => {
   switch (status) {
@@ -89,7 +127,8 @@ export const tauriService = {
   },
 
   async getLessonsByChapter(chapterId: string): Promise<Lesson[]> {
-    return invoke('get_lessons_by_chapter_command', { chapterId });
+    const data = await invoke<BackendLesson[]>('get_lessons_by_chapter_command', { chapterId });
+    return data.map(transformLesson);
   },
 
   async getLessonById(lessonId: string): Promise<object> {
@@ -148,5 +187,10 @@ export const tauriService = {
     }>;
   }): Promise<Chapter[]> {
     return invoke('create_chapters_with_lessons_command', { params });
+  },
+
+  // 删除课程及其本地文件
+  async deleteCourse(courseId: string): Promise<void> {
+    return invoke('delete_course_with_files_command', { courseId });
   },
 };

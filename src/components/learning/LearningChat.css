@@ -128,37 +128,6 @@
   border-color: var(--primary-color, #6366f1);
 }
 
-/* 底部展开按钮 */
-.chat-footer {
-  padding: 0.5rem 0.75rem;
-  border-top: 1px solid var(--border-color, #e5e7eb);
-  background: var(--bg-secondary, #f9fafb);
-}
-
-.expand-btn {
-  width: 100%;
-  padding: 0.5rem;
-  background: transparent;
-  border: 1px dashed var(--border-color, #d1d5db);
-  border-radius: var(--radius-md, 8px);
-  font-size: 0.75rem;
-  color: var(--text-secondary, #6b7280);
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.expand-btn:hover {
-  background: white;
-  border-color: var(--primary-color, #6366f1);
-  color: var(--primary-color, #6366f1);
-}
-
-/* 完整功能视图 */
-.learning-chat-full {
-  height: 100%;
-  overflow: hidden;
-}
-
 /* 小spinner */
 .spinner.small {
   width: 1rem;
