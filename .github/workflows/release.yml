@@ -28,7 +28,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          rm -f ~/.npmrc
+          Remove-Item -Force ~\.npmrc -ErrorAction SilentlyContinue
           npm install --registry=https://registry.npmjs.org
 
       - name: Build Tauri app (Windows)
