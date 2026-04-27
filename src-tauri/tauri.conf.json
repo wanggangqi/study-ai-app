@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "智学伴侣",
+  "productName": "StudyMate",
   "version": "0.1.0",
   "identifier": "com.studymate.app",
   "build": {
@@ -35,9 +35,6 @@
       "icons/128x128@2x.png",
       "icons/icon.icns",
       "icons/icon.ico"
-    ],
-    "windows": {
-      "msiProductName": "StudyMate"
-    }
+    ]
   }
 }
