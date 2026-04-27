@@ -147,7 +147,7 @@ export const DEFAULT_MODELS: Record<AIProvider, string> = {
   qwen: 'qwen3.5-plus',
   deepseek: 'deepseek-chat',
   glm: 'glm-5',
-  minimax: 'M2.7-highspeed',
+  minimax: 'MiniMax-M2.7',
   kimi: 'kimi-k2.5',
   custom: '',
 };

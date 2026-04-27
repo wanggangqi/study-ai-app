@@ -38,7 +38,7 @@ impl AIProvider {
             AIProvider::Qwen => "qwen3.5-plus",
             AIProvider::DeepSeek => "deepseek-chat",
             AIProvider::Glm => "glm-5",
-            AIProvider::MiniMax => "M2.7-highspeed",
+            AIProvider::MiniMax => "MiniMax-M2.7",
             AIProvider::Kimi => "kimi-k2.5",
             AIProvider::Custom => "", // 自定义需要用户提供
         }

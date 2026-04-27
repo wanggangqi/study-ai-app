@@ -20,7 +20,7 @@ const aiProviders = [
   { id: 'qwen' as AIProvider, name: '通义千问 (阿里云)', baseUrl: 'https://dashscope.aliyuncs.com/compatible-mode/v1', defaultModel: 'qwen3.5-plus' },
   { id: 'deepseek' as AIProvider, name: 'DeepSeek', baseUrl: 'https://api.deepseek.com', defaultModel: 'deepseek-chat' },
   { id: 'glm' as AIProvider, name: '智谱 GLM', baseUrl: 'https://open.bigmodel.cn/api/paas/v4', defaultModel: 'glm-5' },
-  { id: 'minimax' as AIProvider, name: 'MiniMax', baseUrl: 'https://api.minimax.chat/v1', defaultModel: 'M2.7-highspeed' },
+  { id: 'minimax' as AIProvider, name: 'MiniMax', baseUrl: 'https://api.minimax.chat/v1', defaultModel: 'MiniMax-M2.7' },
   { id: 'kimi' as AIProvider, name: 'Kimi (Moonshot)', baseUrl: 'https://api.moonshot.cn/v1', defaultModel: 'kimi-k2.5' },
   { id: 'custom' as AIProvider, name: '自定义', baseUrl: '', defaultModel: '' },
 ];

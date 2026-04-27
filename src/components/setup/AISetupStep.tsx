@@ -10,7 +10,7 @@ const AI_PROVIDERS = [
   { id: 'qwen', name: '通义千问 (阿里云)', icon: '🌐', baseUrl: 'https://dashscope.aliyuncs.com/compatible-mode/v1', defaultModel: 'qwen3.5-plus' },
   { id: 'deepseek', name: 'DeepSeek', icon: '🔮', baseUrl: 'https://api.deepseek.com', defaultModel: 'deepseek-chat' },
   { id: 'glm', name: '智谱 GLM', icon: '✨', baseUrl: 'https://open.bigmodel.cn/api/paas/v4', defaultModel: 'glm-5' },
-  { id: 'minimax', name: 'MiniMax', icon: '🎯', baseUrl: 'https://api.minimax.chat/v1', defaultModel: 'M2.7-highspeed' },
+  { id: 'minimax', name: 'MiniMax', icon: '🎯', baseUrl: 'https://api.minimax.chat/v1', defaultModel: 'MiniMax-M2.7' },
   { id: 'kimi', name: 'Kimi (Moonshot)', icon: '🌙', baseUrl: 'https://api.moonshot.cn/v1', defaultModel: 'kimi-k2.5' },
   { id: 'custom', name: '自定义', icon: '⚙️', baseUrl: '', defaultModel: '' },
 ];
