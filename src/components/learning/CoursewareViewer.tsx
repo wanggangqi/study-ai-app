@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, useRef } from 'react';
 import DOMPurify from 'dompurify';
 import { invoke } from '@tauri-apps/api/core';
 import { useCourseStore } from '../../stores/courseStore';
@@ -24,11 +24,22 @@ export const CoursewareViewer: React.FC<CoursewareViewerProps> = ({
   const [error, setError] = useState<string | null>(null);
   const { currentCourse, currentChapter, currentLesson, setLessonContent } = useCourseStore();
 
+  // 使用 ref 防止 React StrictMode 双重调用 useEffect 导致的重复请求
+  const loadingRef = useRef(false);
+  const currentLessonIdRef = useRef<string | null>(null);
+
   useEffect(() => {
-    if (!content && currentCourse && currentChapter && currentLesson) {
+    // 如果已经有内容，或者正在加载，或者 lessonId 未变化，则不重复请求
+    if (content || loadingRef.current || currentLessonIdRef.current === lessonId) {
+      return;
+    }
+
+    if (currentCourse && currentChapter && currentLesson) {
+      currentLessonIdRef.current = lessonId;
+      loadingRef.current = true;
       loadLessonContent();
     }
-  }, [lessonId]);
+  }, [lessonId, content, currentCourse, currentChapter, currentLesson]);
 
   const loadLessonContent = async () => {
     if (!currentCourse || !currentChapter || !currentLesson) {
@@ -67,6 +78,7 @@ export const CoursewareViewer: React.FC<CoursewareViewerProps> = ({
       setError(String(err));
     } finally {
       setIsLoading(false);
+      loadingRef.current = false;
     }
   };
 
@@ -85,7 +97,7 @@ export const CoursewareViewer: React.FC<CoursewareViewerProps> = ({
         'div', 'span',
         'details', 'summary',
       ],
-      ALLOWED_ATTR: ['href', 'src', 'alt', 'title', 'class', 'id', 'target', 'rel'],
+      ALLOWED_ATTR: ['href', 'src', 'alt', 'title', 'class', 'id', 'target', 'rel', 'style'],
     });
   }, [content]);
 

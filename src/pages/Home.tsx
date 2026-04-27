@@ -66,11 +66,11 @@ export const HomePage: React.FC = () => {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {courses.map((course) => (
-              <Card key={course.id} className="hover:shadow-lg transition-shadow relative">
+              <Card key={course.id} className="hover:shadow-lg transition-shadow relative min-h-[200px]">
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
                     <button
-                      className="absolute top-2 right-2 w-8 h-8 flex items-center justify-center rounded-full hover:bg-red-50 text-[#999999] hover:text-red-500 transition-colors"
+                      className="absolute top-2 right-2 w-8 h-8 flex items-center justify-center rounded-full hover:bg-red-50 text-[#999999] hover:text-red-500 transition-colors z-10"
                       onClick={() => setDeleteTarget({ id: course.id, name: course.name })}
                       disabled={deletingId === course.id}
                       title="删除课程"
@@ -98,24 +98,30 @@ export const HomePage: React.FC = () => {
                     </AlertDialogFooter>
                   </AlertDialogContent>
                 </AlertDialog>
-                <h3 className="font-bold text-lg text-[#588157] mb-2 pr-8">{course.name}</h3>
-                <p className="text-sm text-[#666666] mb-2">目标：{course.targetLevel}</p>
-                <p className="text-xs text-[#999999] mb-4">时长：{course.duration}</p>
-                <div className="mb-4">
-                  <div className="h-2 bg-[#f5ebe0] rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-[#588157] rounded-full transition-all duration-300"
-                      style={{ width: `${course.progress || 0}%` }}
-                    />
+                {/* 内容区域：自动填充剩余空间 */}
+                <div className="flex-1">
+                  <h3 className="font-bold text-lg text-[#588157] mb-2 pr-8">{course.name}</h3>
+                  <p className="text-sm text-[#666666] mb-2">目标：{course.targetLevel}</p>
+                  <p className="text-xs text-[#999999] mb-4">时长：{course.duration}</p>
+                  <div className="mb-4">
+                    <div className="h-2 bg-[#f5ebe0] rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-[#588157] rounded-full transition-all duration-300"
+                        style={{ width: `${course.progress || 0}%` }}
+                      />
+                    </div>
+                    <span className="text-xs text-[#588157] mt-1">进度 {course.progress || 0}%</span>
                   </div>
-                  <span className="text-xs text-[#588157] mt-1">进度 {course.progress || 0}%</span>
                 </div>
-                <Button
-                  className="w-full"
-                  onClick={() => navigate(`/learning/${course.id}`)}
-                >
-                  {(course.progress || 0) > 0 ? '继续学习' : '开始学习'}
-                </Button>
+                {/* 按钮区域：固定在底部 */}
+                <div className="mt-auto pt-2">
+                  <Button
+                    className="w-full"
+                    onClick={() => navigate(`/learning/${course.id}`)}
+                  >
+                    {(course.progress || 0) > 0 ? '继续学习' : '开始学习'}
+                  </Button>
+                </div>
               </Card>
             ))}
           </div>

@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
+import DOMPurify from 'dompurify';
 import { Button } from '../common/Button';
 import { chatWithAI } from '../../hooks/useAI';
 import { cleanMessageContent } from '../../hooks/useChat';
@@ -250,7 +251,24 @@ ${initialLessonHtml ? `课件内容：\n${initialLessonHtml}` : ''}
             key={idx}
             className={`chat-message ${msg.role === 'user' ? 'user' : 'assistant'}`}
           >
-            <div className="message-content">{cleanMessageContent(msg.content)}</div>
+            <div
+              className="message-content"
+              dangerouslySetInnerHTML={{
+                __html: DOMPurify.sanitize(cleanMessageContent(msg.content), {
+                  ALLOWED_TAGS: [
+                    'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+                    'p', 'br', 'hr',
+                    'ul', 'ol', 'li',
+                    'blockquote', 'pre', 'code',
+                    'strong', 'em', 'b', 'i', 'u', 's',
+                    'a', 'img',
+                    'table', 'thead', 'tbody', 'tr', 'th', 'td',
+                    'div', 'span',
+                  ],
+                  ALLOWED_ATTR: ['href', 'src', 'alt', 'title', 'class', 'id', 'target', 'rel', 'style'],
+                }),
+              }}
+            />
           </div>
         ))}
 

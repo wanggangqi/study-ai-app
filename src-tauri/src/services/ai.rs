@@ -12,7 +12,7 @@ use regex::Regex;
 /// 大模型（如 DeepSeek）可能会将思考内容放在 <think>...</think> 标签内
 fn strip_think_tags(content: &str) -> String {
     // 使用正则表达式移除 <think>...</think> 标签及其内容
-    let re = Regex::new(r"<think>.*?</think>").unwrap();
+    let re = Regex::new(r"(?s)<think>.*?</think>").unwrap();
     re.replace_all(content, "").to_string()
 }
 
@@ -35,7 +35,8 @@ impl AIProvider {
             AIProvider::Qwen => "https://dashscope.aliyuncs.com",
             AIProvider::DeepSeek => "https://api.deepseek.com",
             AIProvider::Glm => "https://open.bigmodel.cn",
-            AIProvider::MiniMax => "https://api.minimax.chat",
+            // MiniMax 国内用户使用 api.minimaxi.com
+            AIProvider::MiniMax => "https://api.minimaxi.com",
             AIProvider::Kimi => "https://api.moonshot.cn",
             AIProvider::Custom => "", // 自定义需要用户提供
         }
@@ -163,12 +164,30 @@ pub struct StructuredExercise {
 
 /// 发送聊天消息到 AI
 pub async fn chat(config: &AIConfig, messages: Vec<ChatMessage>) -> Result<String, AIError> {
-    eprintln!("[AI] provider={:?}, model={}, base_url={}, messages_count={}",
+    eprintln!("[AI] chat called, provider={:?}, model={}, base_url={}, messages_count={}",
         config.provider, config.get_model(), config.get_base_url(), messages.len());
+
+    // 安全地截取字符串预览（处理 UTF-8 字符边界）
+    let first_msg_preview = messages.first()
+        .map(|m| {
+            let chars = m.content.chars().take(50).collect::<String>();
+            if m.content.len() > chars.len() {
+                format!("{}...", chars)
+            } else {
+                chars
+            }
+        })
+        .unwrap_or_else(|| "none".to_string());
+    eprintln!("[AI] first message role: {}, content preview: {}",
+        messages.first().map(|m| m.role.as_str()).unwrap_or("none"),
+        first_msg_preview);
 
     let client = Client::builder()
         .timeout(std::time::Duration::from_secs(120))
         .connect_timeout(std::time::Duration::from_secs(15))
+        // 设置连接池限制，避免并发请求失败
+        .pool_max_idle_per_host(5)
+        .pool_idle_timeout(std::time::Duration::from_secs(90))
         .build()
         .map_err(|e| AIError::NetworkError(e.to_string()))?;
     let model = config.get_model();
@@ -187,7 +206,16 @@ pub async fn chat(config: &AIConfig, messages: Vec<ChatMessage>) -> Result<Strin
     }
 
     // 清理思考标签内容
-    result.map(|text| strip_think_tags(&text))
+    result.map(|text| {
+        let original_len = text.len();
+        let cleaned = strip_think_tags(&text);
+        let cleaned_len = cleaned.len();
+        eprintln!("[AI] strip_think_tags: original={} chars, cleaned={} chars", original_len, cleaned_len);
+        if original_len > cleaned_len && cleaned_len < 100 {
+            eprintln!("[AI] cleaned content preview: {}", cleaned);
+        }
+        cleaned
+    })
 }
 
 /// OpenAI 格式 API 调用（适用于 DeepSeek、GLM、MiniMax、Kimi）
@@ -329,7 +357,13 @@ pub async fn generate_lesson(
         请根据课程信息生成一个完整的 HTML 课件，内容要详实、有示例、有互动。\
         HTML 格式要求：使用简洁的样式，内嵌 CSS，适合在网页中渲染显示。\
         不要使用外部 CSS 或 JS 文件，所有样式内联。\
-        课件应包含：标题、知识点讲解、代码示例（如有）、小结。",
+        课件应包含：标题、知识点讲解、代码示例（如有）、小结。\n\
+        \n\
+        【代码块格式要求】：\
+        所有代码示例必须使用 <pre><code> 标签包裹，不要使用普通 <p> 或 <div>。\
+        示例：<pre><code>// 你的代码</code></pre>\
+        代码块需要添加内联样式：<pre style=\"background:#f5f5f5;padding:15px;border-radius:8px;overflow-x:auto;font-family:monospace;\">\
+        代码内容中的特殊字符（如 < > &）需要使用 HTML 实体编码（&lt; &gt; &amp;）。",
         teaching_style
     );
 
@@ -492,9 +526,23 @@ pub async fn generate_course_plan(
 
     let response = chat(config, messages).await?;
 
+    // 打印原始响应以便调试
+    eprintln!("[AI] 课程大纲原始响应（前500字符）: {}", if response.len() > 500 { &response[..500] } else { &response });
+
+    // 清理响应内容：移除可能的 markdown 代码块标记
+    let cleaned_response = response
+        .trim()
+        .trim_start_matches("```json")
+        .trim_start_matches("```")
+        .trim_end_matches("```")
+        .trim();
+
+    eprintln!("[AI] 课程大纲清理后响应（前500字符）: {}", if cleaned_response.len() > 500 { &cleaned_response[..500] } else { cleaned_response });
+
     // 解析 JSON 结果
-    let plan: CoursePlanOutline = serde_json::from_str(&response)
-        .map_err(|e| AIError::ParseError(format!("解析课程大纲失败: {}", e)))?;
+    let plan: CoursePlanOutline = serde_json::from_str(cleaned_response)
+        .map_err(|e| AIError::ParseError(format!("解析课程大纲失败: {}，原始响应开头: {}", e,
+            if cleaned_response.len() > 100 { &cleaned_response[..100] } else { cleaned_response })))?;
 
     Ok(plan)
 }
