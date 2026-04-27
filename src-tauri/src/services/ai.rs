@@ -6,6 +6,15 @@ use std::error::Error as StdError;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
+use regex::Regex;
+
+/// 清理 AI 响应中的思考标签内容
+/// 大模型（如 DeepSeek）可能会将思考内容放在 <think>...</think> 标签内
+fn strip_think_tags(content: &str) -> String {
+    // 使用正则表达式移除 <think>...</think> 标签及其内容
+    let re = Regex::new(r"<think>.*?</think>").unwrap();
+    re.replace_all(content, "").to_string()
+}
 
 /// AI 服务商类型（国内供应商 + 自定义）
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -177,7 +186,8 @@ pub async fn chat(config: &AIConfig, messages: Vec<ChatMessage>) -> Result<Strin
         eprintln!("[AI] request succeeded");
     }
 
-    result
+    // 清理思考标签内容
+    result.map(|text| strip_think_tags(&text))
 }
 
 /// OpenAI 格式 API 调用（适用于 DeepSeek、GLM、MiniMax、Kimi）
@@ -201,11 +211,14 @@ async fn chat_openai_format(
     struct OpenAIRequest {
         model: String,
         messages: Vec<ChatMessage>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        max_completion_tokens: Option<u32>,
     }
 
     let request = OpenAIRequest {
         model: model.to_string(),
         messages,
+        max_completion_tokens: Some(8192),
     };
 
     let response = client
